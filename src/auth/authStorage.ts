@@ -1,19 +1,30 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-import type { AuthSession } from '../types/auth';
-
 const TOKEN_KEY = 'xguardiam.accessToken';
 const USER_KEY = 'xguardiam.user';
 
 type StorageKey = typeof TOKEN_KEY | typeof USER_KEY;
 
-export async function saveSession(session: AuthSession) {
-  await setStorageItem(TOKEN_KEY, session.accessToken);
-  await setStorageItem(USER_KEY, JSON.stringify(session.user));
+type WebStorageLike = {
+  getItem: (key: string) => string | null;
+  removeItem: (key: string) => void;
+  setItem: (key: string, value: string) => void;
+};
+
+export type StoredAuthSession<TUser = any> = {
+  accessToken: string;
+  user: TUser;
+};
+
+export async function saveSession<TUser>(user: TUser, accessToken: string) {
+  await Promise.all([
+    setStorageItem(TOKEN_KEY, accessToken),
+    setStorageItem(USER_KEY, JSON.stringify(user)),
+  ]);
 }
 
-export async function loadSession(): Promise<AuthSession | null> {
+export async function loadSession<TUser = any>(): Promise<StoredAuthSession<TUser> | null> {
   const [accessToken, userJson] = await Promise.all([
     getStorageItem(TOKEN_KEY),
     getStorageItem(USER_KEY),
@@ -26,7 +37,7 @@ export async function loadSession(): Promise<AuthSession | null> {
   try {
     return {
       accessToken,
-      user: JSON.parse(userJson),
+      user: JSON.parse(userJson) as TUser,
     };
   } catch {
     await clearSession();
@@ -35,7 +46,10 @@ export async function loadSession(): Promise<AuthSession | null> {
 }
 
 export async function clearSession() {
-  await Promise.all([deleteStorageItem(TOKEN_KEY), deleteStorageItem(USER_KEY)]);
+  await Promise.all([
+    deleteStorageItem(TOKEN_KEY),
+    deleteStorageItem(USER_KEY),
+  ]);
 }
 
 async function getStorageItem(key: StorageKey) {
@@ -64,26 +78,22 @@ async function deleteStorageItem(key: StorageKey) {
   await SecureStore.deleteItemAsync(key);
 }
 
-function getWebStorageItem(key: StorageKey) {
-  if (typeof window === 'undefined') {
-    return null;
-  }
+function getWebStorage() {
+  const maybeGlobal = globalThis as typeof globalThis & {
+    localStorage?: WebStorageLike;
+  };
 
-  return window.localStorage.getItem(key);
+  return maybeGlobal.localStorage ?? null;
+}
+
+function getWebStorageItem(key: StorageKey) {
+  return getWebStorage()?.getItem(key) ?? null;
 }
 
 function setWebStorageItem(key: StorageKey, value: string) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.localStorage.setItem(key, value);
+  getWebStorage()?.setItem(key, value);
 }
 
 function deleteWebStorageItem(key: StorageKey) {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.localStorage.removeItem(key);
+  getWebStorage()?.removeItem(key);
 }
