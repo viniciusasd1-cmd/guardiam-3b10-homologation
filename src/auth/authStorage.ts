@@ -1,18 +1,22 @@
 import * as SecureStore from 'expo-secure-store';
-import { AuthUser } from '../types/auth';
+import { Platform } from 'react-native';
+
+import type { AuthSession } from '../types/auth';
 
 const TOKEN_KEY = 'xguardiam.accessToken';
 const USER_KEY = 'xguardiam.user';
 
-export async function saveSession(user: AuthUser, accessToken: string) {
-  await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
-  await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+type StorageKey = typeof TOKEN_KEY | typeof USER_KEY;
+
+export async function saveSession(session: AuthSession) {
+  await setStorageItem(TOKEN_KEY, session.accessToken);
+  await setStorageItem(USER_KEY, JSON.stringify(session.user));
 }
 
-export async function loadSession() {
+export async function loadSession(): Promise<AuthSession | null> {
   const [accessToken, userJson] = await Promise.all([
-    SecureStore.getItemAsync(TOKEN_KEY),
-    SecureStore.getItemAsync(USER_KEY),
+    getStorageItem(TOKEN_KEY),
+    getStorageItem(USER_KEY),
   ]);
 
   if (!accessToken || !userJson) {
@@ -22,7 +26,7 @@ export async function loadSession() {
   try {
     return {
       accessToken,
-      user: JSON.parse(userJson) as AuthUser,
+      user: JSON.parse(userJson),
     };
   } catch {
     await clearSession();
@@ -31,8 +35,55 @@ export async function loadSession() {
 }
 
 export async function clearSession() {
-  await Promise.all([
-    SecureStore.deleteItemAsync(TOKEN_KEY),
-    SecureStore.deleteItemAsync(USER_KEY),
-  ]);
+  await Promise.all([deleteStorageItem(TOKEN_KEY), deleteStorageItem(USER_KEY)]);
+}
+
+async function getStorageItem(key: StorageKey) {
+  if (Platform.OS === 'web') {
+    return getWebStorageItem(key);
+  }
+
+  return SecureStore.getItemAsync(key);
+}
+
+async function setStorageItem(key: StorageKey, value: string) {
+  if (Platform.OS === 'web') {
+    setWebStorageItem(key, value);
+    return;
+  }
+
+  await SecureStore.setItemAsync(key, value);
+}
+
+async function deleteStorageItem(key: StorageKey) {
+  if (Platform.OS === 'web') {
+    deleteWebStorageItem(key);
+    return;
+  }
+
+  await SecureStore.deleteItemAsync(key);
+}
+
+function getWebStorageItem(key: StorageKey) {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem(key);
+}
+
+function setWebStorageItem(key: StorageKey, value: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(key, value);
+}
+
+function deleteWebStorageItem(key: StorageKey) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(key);
 }
