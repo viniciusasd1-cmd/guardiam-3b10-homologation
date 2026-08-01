@@ -22,7 +22,7 @@ export default function RootLayout() {
         <Stack.Screen name="(app)/home" options={{ headerShown: false }} />
         <Stack.Screen
           name="(app)/trusted-contacts"
-          options={{ title: 'Contatos de confianÃ§a' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="(app)/create-trip"
