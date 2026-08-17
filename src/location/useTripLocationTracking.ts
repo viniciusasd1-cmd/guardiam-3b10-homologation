@@ -82,19 +82,27 @@ export function useTripLocationTracking({
       return null;
     }
 
+    let locationInput: TripLocationInput;
     try {
       setError(null);
       const currentLocation = await getCurrentLocation();
-      const locationInput = toTripLocationInput(currentLocation);
-
-      await sendTripLocation(accessToken, safeTripId, locationInput);
-
+      locationInput = toTripLocationInput(currentLocation);
       setLastLocation(locationInput);
-      setLastSentAt(new Date());
+    } catch (captureError) {
+      setError(
+        captureError instanceof Error && captureError.message === 'LOCATION_SERVICES_DISABLED'
+          ? 'O serviço de localização está desligado. Ative o GPS do dispositivo.'
+          : 'Não foi possível obter uma posição GPS. Tente novamente em instantes.',
+      );
+      return null;
+    }
 
+    try {
+      await sendTripLocation(accessToken, safeTripId, locationInput);
+      setLastSentAt(new Date());
       return locationInput;
     } catch {
-      setError('Não foi possível capturar ou enviar a localização atual.');
+      setError('A posição GPS foi obtida, mas não foi possível enviá-la.');
       return null;
     }
   }, [
@@ -129,9 +137,12 @@ export function useTripLocationTracking({
       return true;
     }
 
-    setIsTracking(true);
-    await sendCurrentLocation();
+    const firstLocation = await sendCurrentLocation();
+    if (!firstLocation) {
+      return false;
+    }
 
+    setIsTracking(true);
     intervalRef.current = setInterval(() => {
       void sendCurrentLocation();
     }, TRACKING_INTERVAL_MS);

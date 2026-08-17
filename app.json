@@ -10,7 +10,9 @@
       "expo-router",
       "expo-secure-store",
       "expo-asset",
-      "expo-font"
+      "expo-font",
+      "./plugins/withRemoveSystemAlertWindow",
+      "./plugins/withPreviewCleartext"
     ],
     "experiments": {
       "typedRoutes": true
@@ -19,9 +21,26 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.guardiam.ride",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#0B1220"
       }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fdf541a8-c8e1-4cce-b440-78afa88c8caf"
+      }
+    },
+    "owner": "vini_123",
+    "updates": {
+      "url": "https://u.expo.dev/fdf541a8-c8e1-4cce-b440-78afa88c8caf"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

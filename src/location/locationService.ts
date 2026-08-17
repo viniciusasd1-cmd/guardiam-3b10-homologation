@@ -9,6 +9,10 @@ export async function requestForegroundLocationPermission() {
 }
 
 export async function getCurrentLocation() {
+  if (!(await Location.hasServicesEnabledAsync())) {
+    throw new Error('LOCATION_SERVICES_DISABLED');
+  }
+
   return Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Balanced,
   });
@@ -18,6 +22,8 @@ export function toTripLocationInput(
   location: Location.LocationObject,
 ): TripLocationInput {
   return {
+    lat: location.coords.latitude,
+    lng: location.coords.longitude,
     latitude: location.coords.latitude,
     longitude: location.coords.longitude,
     accuracy: location.coords.accuracy,

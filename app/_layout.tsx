@@ -26,11 +26,11 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="(app)/create-trip"
-          options={{ title: 'Ativar proteção' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="(app)/active-trip"
-          options={{ title: 'Modo Proteção' }}
+          options={{ headerShown: false }}
         />
       </Stack>
     </AuthProvider>

@@ -2,6 +2,9 @@ import { apiRequest, unwrapData } from './apiClient';
 import { CreateSafeTripInput, SafeTrip } from '../types/safeTrip';
 
 export type TripLocationInput = {
+  lat: number;
+  lng: number;
+  /** Compatibilidade de leitura com componentes legados; não é enviado à API. */
   latitude: number;
   longitude: number;
   accuracy?: number | null;
@@ -72,8 +75,16 @@ export async function sendTripLocation(
     {
       method: 'POST',
       token,
-      body:
-        location ?? {
+      body: location
+        ? {
+            lat: location.lat,
+            lng: location.lng,
+            accuracy: location.accuracy,
+            altitude: location.altitude,
+            speed: location.speed,
+            heading: location.heading,
+          }
+        : {
           lat: -23.55052,
           lng: -46.633308,
           speed: 24,
@@ -85,13 +96,23 @@ export async function sendTripLocation(
   );
 }
 
-export async function triggerPanicAlert(token: string, safeTripId: string) {
-  return apiRequest<{ status: string; resource: string; data: unknown }>(
+export async function triggerPanicAlert(
+  token: string,
+  safeTripId: string,
+  eventId: string,
+) {
+  return apiRequest<{
+    status: string;
+    resource: string;
+    data: unknown;
+    idempotent?: boolean;
+  }>(
     `/safe-trips/${safeTripId}/alerts`,
     {
       method: 'POST',
       token,
       body: {
+        eventId,
         triggerType: 'MANUAL',
         message: 'Alerta silencioso acionado pelo app',
       },
