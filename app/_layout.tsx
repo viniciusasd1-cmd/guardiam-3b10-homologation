@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from '@expo-google-fonts/inter/useFonts';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
@@ -12,10 +12,63 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/auth/AuthContext';
-import { colors } from '../src/constants/colors';
-import { GuardiamThemeProvider } from '../src/theme/GuardiamThemeProvider';
+import {
+  GuardiamThemeProvider,
+  useGuardiamTheme,
+} from '../src/theme/GuardiamThemeProvider';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+function RootThemeShell() {
+  const { theme } = useGuardiamTheme();
+
+  return (
+    <AuthProvider>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: theme.background },
+          headerShadowVisible: false,
+          headerTintColor: theme.text,
+          headerTitleStyle: { fontWeight: '800' },
+          contentStyle: { backgroundColor: theme.background },
+        }}
+      >
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="(auth)/login"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(auth)/register"
+          options={{ title: 'Criar conta' }}
+        />
+
+        <Stack.Screen
+          name="(app)/home"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/trusted-contacts"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/create-trip"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/active-trip"
+          options={{ headerShown: false }}
+        />
+      </Stack>
+    </AuthProvider>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -40,51 +93,7 @@ export default function RootLayout() {
 
   return (
     <GuardiamThemeProvider>
-      <AuthProvider>
-        <StatusBar style="dark" />
-
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.background },
-            headerShadowVisible: false,
-            headerTintColor: colors.text,
-            headerTitleStyle: { fontWeight: '800' },
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-
-          <Stack.Screen
-            name="(auth)/login"
-            options={{ headerShown: false }}
-          />
-
-          <Stack.Screen
-            name="(auth)/register"
-            options={{ title: 'Criar conta' }}
-          />
-
-          <Stack.Screen
-            name="(app)/home"
-            options={{ headerShown: false }}
-          />
-
-          <Stack.Screen
-            name="(app)/trusted-contacts"
-            options={{ headerShown: false }}
-          />
-
-          <Stack.Screen
-            name="(app)/create-trip"
-            options={{ headerShown: false }}
-          />
-
-          <Stack.Screen
-            name="(app)/active-trip"
-            options={{ headerShown: false }}
-          />
-        </Stack>
-      </AuthProvider>
+      <RootThemeShell />
     </GuardiamThemeProvider>
   );
 }
