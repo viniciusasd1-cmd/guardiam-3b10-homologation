@@ -38,7 +38,37 @@ function RootThemeShell() {
           contentStyle: { backgroundColor: theme.background },
         }}
       >
-        {/* manter todas as Stack.Screen atuais exatamente como estão */}
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+
+        <Stack.Screen
+          name="(auth)/login"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(auth)/register"
+          options={{ title: 'Criar conta' }}
+        />
+
+        <Stack.Screen
+          name="(app)/home"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/trusted-contacts"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/create-trip"
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="(app)/active-trip"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </AuthProvider>
   );
@@ -55,7 +85,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontError) {
-      console.error('[FontRuntime] Failed to load global fonts.', fontError);
+      console.error(
+        '[FontRuntime] Failed to load global fonts.',
+        fontError
+      );
     }
 
     if (fontsLoaded || fontError) {
