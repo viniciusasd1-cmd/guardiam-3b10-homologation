@@ -2,8 +2,10 @@ import type { TextStyle, ViewStyle } from 'react-native';
 
 export type GuardiamV2ThemeMode = 'light' | 'dark';
 
+export type GuardiamV2ResolvedThemeMode = 'light' | 'dark' | 'darkNavy' | 'critical';
+
 export type GuardiamV2Theme = {
-  mode: GuardiamV2ThemeMode;
+  mode: GuardiamV2ResolvedThemeMode;
   background: string;
   surface: string;
   surface2: string;
@@ -48,15 +50,15 @@ export const guardiamV2Themes: Record<GuardiamV2ThemeMode, GuardiamV2Theme> = {
   },
   dark: {
     mode: 'dark',
-    background: '#0A1220',
-    surface: '#101B2E',
-    surface2: '#16233B',
-    surface3: '#1E3050',
-    border: '#24344F',
-    borderStrong: '#33486B',
-    text: '#F5F8FF',
-    text2: '#A9B7CE',
-    text3: '#6B7C97',
+    background: '#111318',
+    surface: '#181B21',
+    surface2: '#20242C',
+    surface3: '#252A33',
+    border: '#2B313B',
+    borderStrong: '#2B313B',
+    text: '#F5F7FA',
+    text2: '#A8B0BC',
+    text3: '#727C8B',
     brand: '#2E8BFF',
     brandSoft: 'rgba(46,139,255,0.14)',
     active: '#2FD98A',
@@ -69,8 +71,30 @@ export const guardiamV2Themes: Record<GuardiamV2ThemeMode, GuardiamV2Theme> = {
   },
 };
 
+export const guardiamV2DarkNavy: GuardiamV2Theme = {
+  mode: 'darkNavy',
+  background: '#0A1220',
+  surface: '#101B2E',
+  surface2: '#16233B',
+  surface3: '#1E3050',
+  border: '#24344F',
+  borderStrong: '#33486B',
+  text: '#F5F8FF',
+  text2: '#A9B7CE',
+  text3: '#6B7C97',
+  brand: '#2E8BFF',
+  brandSoft: 'rgba(46,139,255,0.14)',
+  active: '#2FD98A',
+  activeSoft: 'rgba(47,217,138,0.14)',
+  warn: '#FFC24B',
+  warnSoft: 'rgba(255,194,75,0.14)',
+  sos: '#FF5A5F',
+  sosSoft: 'rgba(255,90,95,0.14)',
+  darkNavy: '#0A1220',
+};
+
 export const guardiamV2Critical: GuardiamV2Theme = {
-  mode: 'dark',
+  mode: 'critical',
   background: '#EF4444',
   surface: '#DC2626',
   surface2: '#B91C1C',
@@ -90,6 +114,7 @@ export const guardiamV2Critical: GuardiamV2Theme = {
   sosSoft: 'rgba(255,255,255,0.2)',
   darkNavy: '#0A1220',
 };
+
 export const guardiamV2Radius = {
   md: 16,
   lg: 24,
@@ -130,6 +155,5 @@ export const guardiamV2Shadows = {
   activeGlow: { shadowColor: '#10B981', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.14, shadowRadius: 6, elevation: 0 },
   sosGlow: { shadowColor: '#EF4444', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.25, shadowRadius: 32, elevation: 10 },
 } satisfies { light: Record<'sm' | 'md' | 'lg', ViewStyle>; dark: Record<'sm' | 'md' | 'lg', ViewStyle>; activeGlow: ViewStyle; sosGlow: ViewStyle };
-
 
 export const getGuardiamV2Theme = (mode: GuardiamV2ThemeMode = 'light') => guardiamV2Themes[mode];
