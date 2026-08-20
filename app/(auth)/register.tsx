@@ -68,12 +68,12 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-    fontSize: 30,
-    fontWeight: '900',
+    fontSize: 24,
+    fontWeight: '800',
   },
   subtitle: {
     color: colors.textMuted,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 23,
   },
   form: {

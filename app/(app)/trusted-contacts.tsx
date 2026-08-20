@@ -126,12 +126,12 @@ export default function TrustedContactsScreen() {
             onPress={() => router.back()}
             style={({ pressed }) => [styles.backButton, pressed ? styles.pressed : null]}
           >
-            <Ionicons color="#E7F3FF" name="chevron-back" size={22} />
+            <Ionicons color="#0F172A" name="chevron-back" size={22} />
           </Pressable>
 
           <View style={styles.brandRow}>
             <View style={styles.logoMark}>
-              <Ionicons color="#7DD3FC" name="shield-checkmark-outline" size={20} />
+              <Ionicons color="#1B6EE0" name="shield-checkmark-outline" size={20} />
             </View>
             <Text style={styles.brand}>GUARDIAM</Text>
           </View>
@@ -141,7 +141,7 @@ export default function TrustedContactsScreen() {
 
         <View style={styles.heroCard}>
           <View style={styles.heroIcon}>
-            <Ionicons color="#7DD3FC" name="people-outline" size={34} />
+            <Ionicons color="#1B6EE0" name="people-outline" size={34} />
           </View>
           <Text style={styles.eyebrow}>Sua rede de apoio</Text>
           <Text style={styles.title}>Contatos de segurança</Text>
@@ -150,7 +150,7 @@ export default function TrustedContactsScreen() {
           </Text>
 
           <View style={styles.infoBadge}>
-            <Ionicons color="#86EFAC" name="shield-checkmark-outline" size={16} />
+            <Ionicons color="#10B981" name="shield-checkmark-outline" size={16} />
             <Text style={styles.infoBadgeText}>
               Essas pessoas poderão ser avisadas em caso de alerta
             </Text>
@@ -160,7 +160,7 @@ export default function TrustedContactsScreen() {
         <View style={styles.formCard}>
           <View style={styles.sectionHeading}>
             <View style={styles.sectionIcon}>
-              <Ionicons color="#7DD3FC" name="person-add-outline" size={18} />
+              <Ionicons color="#1B6EE0" name="person-add-outline" size={18} />
             </View>
             <View style={styles.sectionHeadingText}>
               <Text style={styles.sectionTitle}>Adicionar contato</Text>
@@ -216,9 +216,9 @@ export default function TrustedContactsScreen() {
             ]}
           >
             {loading ? (
-              <ActivityIndicator color="#04111F" size="small" />
+              <ActivityIndicator color="#0F172A" size="small" />
             ) : (
-              <Ionicons color="#04111F" name="person-add-outline" size={21} />
+              <Ionicons color="#0F172A" name="person-add-outline" size={21} />
             )}
             <Text style={styles.primaryButtonText}>
               {loading ? 'Adicionando contato...' : 'Adicionar contato'}
@@ -238,14 +238,14 @@ export default function TrustedContactsScreen() {
 
           {loadingContacts ? (
             <View style={styles.stateCard}>
-              <ActivityIndicator color="#38BDF8" size="large" />
+              <ActivityIndicator color="#1B6EE0" size="large" />
               <Text style={styles.stateTitle}>Carregando contatos</Text>
               <Text style={styles.stateDescription}>Estamos preparando sua rede de apoio.</Text>
             </View>
           ) : loadError ? (
             <View style={styles.stateCard}>
               <View style={[styles.stateIcon, styles.errorIcon]}>
-                <Ionicons color="#FDA4AF" name="cloud-offline-outline" size={26} />
+                <Ionicons color="#DC2626" name="cloud-offline-outline" size={26} />
               </View>
               <Text style={styles.stateTitle}>Não foi possível carregar</Text>
               <Text style={styles.stateDescription}>{loadError}</Text>
@@ -258,14 +258,14 @@ export default function TrustedContactsScreen() {
                   pressed ? styles.pressed : null,
                 ]}
               >
-                <Ionicons color="#7DD3FC" name="refresh-outline" size={18} />
+                <Ionicons color="#1B6EE0" name="refresh-outline" size={18} />
                 <Text style={styles.retryButtonText}>Tentar novamente</Text>
               </Pressable>
             </View>
           ) : contacts.length === 0 ? (
             <View style={styles.stateCard}>
               <View style={styles.stateIcon}>
-                <Ionicons color="#7DD3FC" name="people-outline" size={28} />
+                <Ionicons color="#1B6EE0" name="people-outline" size={28} />
               </View>
               <Text style={styles.stateTitle}>Nenhum contato cadastrado</Text>
               <Text style={styles.stateDescription}>
@@ -287,7 +287,7 @@ export default function TrustedContactsScreen() {
                       {contact.name}
                     </Text>
                     <View style={styles.relationshipRow}>
-                      <Ionicons color="#7DD3FC" name="heart-outline" size={14} />
+                      <Ionicons color="#1B6EE0" name="heart-outline" size={14} />
                       <Text style={styles.relationshipText}>
                         {RELATIONSHIP_LABELS[contact.relationship]}
                       </Text>
@@ -299,7 +299,7 @@ export default function TrustedContactsScreen() {
                   </View>
 
                   <View style={styles.readyIcon}>
-                    <Ionicons color="#86EFAC" name="checkmark" size={17} />
+                    <Ionicons color="#10B981" name="checkmark" size={17} />
                   </View>
                 </View>
               ))}
@@ -345,7 +345,7 @@ function getErrorMessage(error: unknown) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#04111F',
+    backgroundColor: '#0F172A',
     flex: 1,
   },
   scrollContent: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     width: 38,
   },
   brand: {
-    color: '#E7F3FF',
+    color: '#0F172A',
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 20,
     paddingVertical: 24,
-    shadowColor: '#0EA5E9',
+    shadowColor: '#1B6EE0',
     shadowOffset: { height: 14, width: 0 },
     shadowOpacity: 0.15,
     shadowRadius: 22,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
     width: 62,
   },
   eyebrow: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -432,14 +432,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.4,
     textAlign: 'center',
   },
   subtitle: {
-    color: '#CBD5E1',
+    color: '#475569',
     fontSize: 15,
     lineHeight: 22,
     marginTop: 10,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionTitle: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '900',
   },
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   inputLabel: {
-    color: '#CBD5E1',
+    color: '#475569',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   input: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     flex: 1,
     fontSize: 15,
     minHeight: 50,
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: '#38BDF8',
+    backgroundColor: '#1B6EE0',
     borderRadius: 18,
     flexDirection: 'row',
     gap: 9,
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
     minHeight: 54,
     paddingHorizontal: 18,
-    shadowColor: '#38BDF8',
+    shadowColor: '#1B6EE0',
     shadowOffset: { height: 8, width: 0 },
     shadowOpacity: 0.22,
     shadowRadius: 16,
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   primaryButtonText: {
-    color: '#04111F',
+    color: '#0F172A',
     fontSize: 16,
     fontWeight: '900',
   },
@@ -564,7 +564,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   listTitle: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '900',
   },
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
   },
   countBadgeText: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 12,
     fontWeight: '900',
   },
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(244, 63, 94, 0.12)',
   },
   stateTitle: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '900',
     textAlign: 'center',
@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
   },
   retryButtonText: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 14,
     fontWeight: '800',
   },
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     width: 46,
   },
   contactInitial: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 18,
     fontWeight: '900',
   },
@@ -666,7 +666,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contactName: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '900',
     marginBottom: 5,
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   relationshipText: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 12,
     fontWeight: '700',
   },

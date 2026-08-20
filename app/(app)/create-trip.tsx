@@ -79,12 +79,12 @@ export default function CreateTripScreen() {
               pressed ? styles.pressed : null,
             ]}
           >
-            <Ionicons color="#E7F3FF" name="chevron-back" size={22} />
+            <Ionicons color="#0F172A" name="chevron-back" size={22} />
           </Pressable>
 
           <View style={styles.brandRow}>
             <View style={styles.logoMark}>
-              <Ionicons color="#7DD3FC" name="shield-checkmark-outline" size={20} />
+              <Ionicons color="#1B6EE0" name="shield-checkmark-outline" size={20} />
             </View>
 
             <Text style={styles.brand}>GUARDIAM</Text>
@@ -95,7 +95,7 @@ export default function CreateTripScreen() {
 
         <View style={styles.heroCard}>
           <View style={styles.heroIcon}>
-            <Ionicons color="#86EFAC" name="shield-outline" size={42} />
+            <Ionicons color="#10B981" name="shield-outline" size={42} />
           </View>
 
           <Text style={styles.eyebrow}>Modo Proteção</Text>
@@ -138,7 +138,7 @@ export default function CreateTripScreen() {
         </View>
 
         <View style={styles.noteCard}>
-          <Ionicons color="#38BDF8" name="lock-closed-outline" size={18} />
+          <Ionicons color="#1B6EE0" name="lock-closed-outline" size={18} />
 
           <Text style={styles.noteText}>
             O MVP ainda usa a base técnica validada anteriormente, mas a experiência
@@ -160,7 +160,7 @@ export default function CreateTripScreen() {
         >
           <View style={styles.primaryButtonIcon}>
             <Ionicons
-              color="#04111F"
+              color="#0F172A"
               name={loading ? 'hourglass-outline' : 'power-outline'}
               size={24}
             />
@@ -213,14 +213,14 @@ function ReadinessItem({
 
 function getReadinessIconColor(tone: ReadinessItemProps['tone']) {
   if (tone === 'green') {
-    return '#86EFAC';
+    return '#10B981';
   }
 
   if (tone === 'red') {
-    return '#FDA4AF';
+    return '#DC2626';
   }
 
-  return '#7DD3FC';
+  return '#1B6EE0';
 }
 
 function getReadinessIconStyle(tone: ReadinessItemProps['tone']) {
@@ -245,7 +245,7 @@ function getErrorMessage(error: unknown) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#04111F',
+    backgroundColor: '#0F172A',
     flex: 1,
   },
   scrollContent: {
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     width: 38,
   },
   brand: {
-    color: '#E7F3FF',
+    color: '#0F172A',
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: 1.2,
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 20,
     paddingVertical: 26,
-    shadowColor: '#0EA5E9',
+    shadowColor: '#1B6EE0',
     shadowOffset: { height: 14, width: 0 },
     shadowOpacity: 0.15,
     shadowRadius: 22,
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     width: 72,
   },
   eyebrow: {
-    color: '#7DD3FC',
+    color: '#1B6EE0',
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -332,14 +332,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   title: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '900',
     letterSpacing: -0.4,
     textAlign: 'center',
   },
   subtitle: {
-    color: '#CBD5E1',
+    color: '#475569',
     fontSize: 15,
     lineHeight: 22,
     marginTop: 10,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   statusDot: {
-    backgroundColor: '#86EFAC',
+    backgroundColor: '#10B981',
     borderRadius: 5,
     height: 10,
     width: 10,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   sectionTitle: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '900',
     marginBottom: 12,
@@ -438,13 +438,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: 'center',
-    backgroundColor: '#38BDF8',
+    backgroundColor: '#1B6EE0',
     borderRadius: 24,
     flexDirection: 'row',
     gap: 14,
     paddingHorizontal: 18,
     paddingVertical: 17,
-    shadowColor: '#38BDF8',
+    shadowColor: '#1B6EE0',
     shadowOffset: { height: 10, width: 0 },
     shadowOpacity: 0.26,
     shadowRadius: 18,
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   primaryButtonTitle: {
-    color: '#04111F',
+    color: '#0F172A',
     fontSize: 17,
     fontWeight: '900',
   },
