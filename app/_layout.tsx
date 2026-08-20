@@ -8,10 +8,12 @@ import { Manrope_700Bold } from '@expo-google-fonts/manrope/700Bold';
 import { Manrope_800ExtraBold } from '@expo-google-fonts/manrope/800ExtraBold';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/auth/AuthContext';
 import { colors } from '../src/constants/colors';
+import { GuardiamThemeProvider } from '../src/theme/GuardiamThemeProvider';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -35,36 +37,54 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) return null;
+
   return (
-    <AuthProvider>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
-          headerShadowVisible: false,
-          headerTintColor: colors.text,
-          headerTitleStyle: { fontWeight: '800' },
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/register" options={{ title: 'Criar conta' }} />
-        <Stack.Screen name="(app)/home" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(app)/trusted-contacts"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="(app)/create-trip"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="(app)/active-trip"
-          options={{ headerShown: false }}
-        />
-      </Stack>
-    </AuthProvider>
+    <GuardiamThemeProvider>
+      <AuthProvider>
+        <StatusBar style="dark" />
+
+        <Stack
+          screenOptions={{
+            headerStyle: { backgroundColor: colors.background },
+            headerShadowVisible: false,
+            headerTintColor: colors.text,
+            headerTitleStyle: { fontWeight: '800' },
+            contentStyle: { backgroundColor: colors.background },
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+
+          <Stack.Screen
+            name="(auth)/login"
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="(auth)/register"
+            options={{ title: 'Criar conta' }}
+          />
+
+          <Stack.Screen
+            name="(app)/home"
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="(app)/trusted-contacts"
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="(app)/create-trip"
+            options={{ headerShown: false }}
+          />
+
+          <Stack.Screen
+            name="(app)/active-trip"
+            options={{ headerShown: false }}
+          />
+        </Stack>
+      </AuthProvider>
+    </GuardiamThemeProvider>
   );
 }
-
