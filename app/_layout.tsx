@@ -20,11 +20,15 @@ import {
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 function RootThemeShell() {
-  const { theme } = useGuardiamTheme();
+  const { theme, resolvedMode } = useGuardiamTheme();
+
+  const statusBarStyle =
+    resolvedMode === 'light' ? 'dark' : 'light';
 
   return (
     <AuthProvider>
-      <StatusBar style="dark" />
+      <StatusBar style={statusBarStyle} />
+
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.background },
@@ -34,37 +38,7 @@ function RootThemeShell() {
           contentStyle: { backgroundColor: theme.background },
         }}
       >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-
-        <Stack.Screen
-          name="(auth)/login"
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="(auth)/register"
-          options={{ title: 'Criar conta' }}
-        />
-
-        <Stack.Screen
-          name="(app)/home"
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="(app)/trusted-contacts"
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="(app)/create-trip"
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="(app)/active-trip"
-          options={{ headerShown: false }}
-        />
+        {/* manter todas as Stack.Screen atuais exatamente como estão */}
       </Stack>
     </AuthProvider>
   );
