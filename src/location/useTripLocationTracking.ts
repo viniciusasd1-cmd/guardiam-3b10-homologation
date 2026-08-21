@@ -29,8 +29,16 @@ type UseTripLocationTrackingOptions = {
   isTripActive: boolean;
 };
 
+function isBackgroundLocationFeatureEnabled(): boolean {
+  return process.env.EXPO_PUBLIC_ENABLE_BACKGROUND_LOCATION === 'true';
+}
+
 async function canUseBackgroundLocation(): Promise<boolean> {
   try {
+    if (!isBackgroundLocationFeatureEnabled()) {
+      return false;
+    }
+
     if (Constants.appOwnership === 'expo') {
       return false;
     }
