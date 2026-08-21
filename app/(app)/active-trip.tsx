@@ -1,21 +1,63 @@
-import { Ionicons } from '@expo/vector-icons';
+import {
+  Activity,
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  ChevronLeft,
+  Clock,
+  Lock,
+  MapPin,
+  Power,
+  Radio,
+  RefreshCw,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+} from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import type { ComponentProps, ReactNode } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { completeTrip, getActiveTrip, getSafeTrip, startTrip, triggerPanicAlert } from '../../src/api/safeTripsApi';
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  completeTrip,
+  getActiveTrip,
+  getSafeTrip,
+  startTrip,
+  triggerPanicAlert,
+} from '../../src/api/safeTripsApi';
 import { useAuth } from '../../src/auth/AuthContext';
 import { useTripLocationTracking } from '../../src/location/useTripLocationTracking';
-import { clearActiveTripSession, saveActiveTripSession } from '../../src/location/activeTripSessionStorage';
-import { createOrLoadSos, loadPendingSos, markSosConfirmed, markSosPending, markSosSending } from '../../src/sos/sosQueue';
+import {
+  clearActiveTripSession,
+  saveActiveTripSession,
+} from '../../src/location/activeTripSessionStorage';
+import {
+  createOrLoadSos,
+  loadPendingSos,
+  markSosConfirmed,
+  markSosPending,
+  markSosSending,
+} from '../../src/sos/sosQueue';
 import type { SafeTrip, TripStatus } from '../../src/types/safeTrip';
 import { createEventId } from '../../src/utils/uuid';
 import { FloatingGuardian } from '../../src/components/trip/FloatingGuardian';
 import { GuardianController } from '../../src/guardian/GuardianController';
 import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
+import {
+  guardiamV2Radius,
+  guardiamV2Spacing,
+  guardiamV2Typography,
+} from '../../src/theme/guardiamV2';
 
-type IconName = ComponentProps<typeof Ionicons>['name'];
 type Action = 'alert' | 'complete' | 'start';
 type Feedback = { message: string; error: boolean };
 
@@ -23,7 +65,7 @@ export default function ActiveTripScreen() {
   const { safeTripId } = useLocalSearchParams<{ safeTripId?: string }>();
   const router = useRouter();
   const { accessToken } = useAuth();
-  const { setProtectionActive, setSosCritical } = useGuardiamTheme();
+  const { theme, resolvedMode, setProtectionActive, setSosCritical } = useGuardiamTheme();
   const [safeTrip, setSafeTrip] = useState<SafeTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -37,14 +79,30 @@ export default function ActiveTripScreen() {
   const active = safeTrip?.status === 'ACTIVE' || safeTrip?.status === 'ALERT_TRIGGERED';
   const finished = safeTrip ? isFinalStatus(safeTrip.status) : false;
   const alerted = safeTrip?.status === 'ALERT_TRIGGERED' || localAlert;
+
   const guardianController = new GuardianController({
     getProtectionStatus: () => getGuardianProtectionStatus(safeTrip?.status, ended),
-    startProtection: async () => { await handleStart(); },
-    stopProtection: async () => { await handleComplete(); },
-    requestSOS: async () => { await handleAlert(); },
+    startProtection: async () => {
+      await handleStart();
+    },
+    stopProtection: async () => {
+      await handleComplete();
+    },
+    requestSOS: async () => {
+      await handleAlert();
+    },
   });
 
-  const { permissionStatus, isTracking, lastLocation, lastSentAt, error: locationError, sendCurrentLocation, startTracking, stopTracking } = useTripLocationTracking({
+  const {
+    permissionStatus,
+    isTracking,
+    lastLocation,
+    lastSentAt,
+    error: _locationError,
+    sendCurrentLocation,
+    startTracking,
+    stopTracking,
+  } = useTripLocationTracking({
     accessToken,
     safeTripId: safeTrip?.id,
     isTripActive: active,
@@ -71,7 +129,10 @@ export default function ActiveTripScreen() {
     }
   }, [accessToken, safeTripId]);
 
-  useEffect(() => { void loadProtection(); }, [loadProtection]);
+  useEffect(() => {
+    void loadProtection();
+  }, [loadProtection]);
+
   useEffect(() => {
     setLocalAlert(false);
     setAlertAt(null);
@@ -83,8 +144,11 @@ export default function ActiveTripScreen() {
       });
     }
   }, [safeTrip?.id]);
+
   useEffect(() => {
-    if (safeTrip?.status === 'ALERT_TRIGGERED' && !alertAt) setAlertAt(new Date());
+    if (safeTrip?.status === 'ALERT_TRIGGERED' && !alertAt) {
+      setAlertAt(new Date());
+    }
   }, [alertAt, safeTrip?.status]);
 
   useEffect(() => {
@@ -136,7 +200,10 @@ export default function ActiveTripScreen() {
       const result = await startTrip(requireToken(accessToken), safeTrip.id);
       trackingAttempt.current = null;
       setSafeTrip(result);
-      setFeedback({ message: 'Proteção ativada. Preparando sua localização.', error: false });
+      setFeedback({
+        message: 'Proteção ativada. Preparando sua localização.',
+        error: false,
+      });
     } catch (error) {
       setFeedback({ message: errorMessage(error), error: true });
     } finally {
@@ -149,21 +216,25 @@ export default function ActiveTripScreen() {
     setAction('alert');
     setFeedback(null);
     try {
-      const queued = await createOrLoadSos(safeTrip.id, sosEventId.current ?? createEventId());
+      const queued = await createOrLoadSos(
+        safeTrip.id,
+        sosEventId.current ?? createEventId()
+      );
       sosEventId.current = queued.eventId;
       const sending = await markSosSending(queued);
       if (!sending) return;
       await sendCurrentLocation();
-      // A response with `idempotent: true` is confirmation of this same SOS.
       await triggerPanicAlert(
         requireToken(accessToken),
         safeTrip.id,
-        sending.eventId,
+        sending.eventId
       );
       await markSosConfirmed(sending);
       setAlertAt(new Date());
       setLocalAlert(true);
-      setSafeTrip((value) => value ? { ...value, status: 'ALERT_TRIGGERED' } : value);
+      setSafeTrip((value) =>
+        value ? { ...value, status: 'ALERT_TRIGGERED' } : value
+      );
       sosEventId.current = null;
     } catch (error) {
       if (safeTrip) {
@@ -195,107 +266,682 @@ export default function ActiveTripScreen() {
   function confirmComplete() {
     Alert.alert('Desativar proteção', 'Deseja desativar o Modo Proteção?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Desativar', style: 'destructive', onPress: () => void handleComplete() },
+      {
+        text: 'Desativar',
+        style: 'destructive',
+        onPress: () => void handleComplete(),
+      },
     ]);
   }
 
-  if (loading && !safeTrip) return <StatePage loading title="Preparando Modo Proteção..." text="Carregando status da sua proteção." />;
-  if (loadError || !safeTrip) return (
-    <StatePage title="Não foi possível carregar o Modo Proteção.">
-      <Primary icon="refresh-outline" label="Tentar novamente" onPress={() => void loadProtection()} />
-      <Secondary label="Voltar para início" onPress={() => router.replace('/(app)/home')} />
-    </StatePage>
-  );
-  if (ended || finished) return (
-    <StatePage safe title="Proteção encerrada." text="Você pode ativar novamente quando quiser.">
-      <Primary icon="power-outline" label="Ativar novamente" onPress={() => router.replace('/(app)/create-trip')} />
-      <Secondary label="Voltar para início" onPress={() => router.replace('/(app)/home')} />
-    </StatePage>
-  );
-  if (!active) return (
-    <Page scroll>
-      <Header onBack={() => router.back()} />
-      <View style={styles.hero}>
-        <IconBubble icon="shield-outline" />
-        <Text style={styles.eyebrow}>Modo Proteção</Text>
-        <Text style={styles.title}>Proteção pronta</Text>
-        <Text style={styles.copy}>Toque para ativar sua proteção.</Text>
+  if (loading && !safeTrip) {
+    return (
+      <StatePage
+        loading
+        title="Preparando Modo Proteção..."
+        text="Carregando status da sua proteção em tempo real."
+        theme={theme}
+        resolvedMode={resolvedMode}
+      />
+    );
+  }
+
+  if (loadError || !safeTrip) {
+    return (
+      <StatePage
+        title="Não foi possível carregar o Modo Proteção."
+        text="Verifique sua conexão ou tente recarregar as informações da sua proteção."
+        theme={theme}
+        resolvedMode={resolvedMode}
+      >
+        <PrimaryButton
+          icon={<RefreshCw size={18} color={theme.background} />}
+          label="Tentar novamente"
+          onPress={() => void loadProtection()}
+          theme={theme}
+        />
+        <SecondaryButton
+          label="Voltar para o início"
+          onPress={() => router.replace('/(app)/home')}
+          theme={theme}
+        />
+      </StatePage>
+    );
+  }
+
+  if (ended || finished) {
+    return (
+      <StatePage
+        safe
+        title="Proteção encerrada."
+        text="Você pode ativar novamente sempre que iniciar uma nova viagem ou deslocamento."
+        theme={theme}
+        resolvedMode={resolvedMode}
+      >
+        <PrimaryButton
+          icon={<Power size={18} color={theme.background} />}
+          label="Iniciar Nova Proteção"
+          onPress={() => router.replace('/(app)/create-trip')}
+          theme={theme}
+        />
+        <SecondaryButton
+          label="Voltar para o início"
+          onPress={() => router.replace('/(app)/home')}
+          theme={theme}
+        />
+      </StatePage>
+    );
+  }
+
+  if (!active) {
+    return (
+      <Page theme={theme} resolvedMode={resolvedMode} scroll>
+        <Header onBack={() => router.back()} theme={theme} />
+        <View
+          style={[
+            styles.heroCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              borderRadius: guardiamV2Radius.lg,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.iconBubble,
+              {
+                backgroundColor: theme.surface2,
+                borderRadius: guardiamV2Radius.pill,
+              },
+            ]}
+          >
+            <Shield size={32} color={theme.brand} />
+          </View>
+          <Text style={[styles.eyebrow, { color: theme.text3 }]}>
+            MODO PROTEÇÃO
+          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>
+            Proteção Pronta
+          </Text>
+          <Text style={[styles.copy, { color: theme.text2 }]}>
+            Toque para ativar o monitoramento contínuo e a transmissão segura de localização.
+          </Text>
+        </View>
+
+        {feedback ? <FeedbackBanner value={feedback} theme={theme} /> : null}
+
+        <PrimaryButton
+          disabled={action === 'start'}
+          icon={
+            action === 'start' ? (
+              <ActivityIndicator size="small" color={theme.background} />
+            ) : (
+              <Power size={20} color={theme.background} />
+            )
+          }
+          label={
+            action === 'start' ? 'Ativando proteção...' : 'Ativar Proteção'
+          }
+          onPress={() => void handleStart()}
+          theme={theme}
+        />
+      </Page>
+    );
+  }
+
+  return (
+    <Page theme={theme} resolvedMode={resolvedMode} scroll compact>
+      <Header onBack={() => router.back()} theme={theme} />
+
+      <FloatingGuardian
+        disabled={action !== null}
+        confirmed={alerted}
+        onTrigger={() => void guardianController.requestSOS()}
+      />
+
+      {/* Main Status Hero Card */}
+      {alerted ? (
+        <View
+          style={[
+            styles.statusCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.borderStrong,
+              borderRadius: guardiamV2Radius.lg,
+            },
+          ]}
+        >
+          <View style={styles.cardHeaderRow}>
+            <View
+              style={[
+                styles.iconBubble,
+                {
+                  backgroundColor: theme.surface2,
+                  borderRadius: guardiamV2Radius.md,
+                },
+              ]}
+            >
+              <ShieldAlert size={28} color={theme.text} />
+            </View>
+            <View style={styles.cardHeaderText}>
+              <View style={styles.alertBadgeRow}>
+                <View style={[styles.pulseDot, { backgroundColor: '#FFFFFF' }]} />
+                <Text style={[styles.alertBadgeText, { color: '#FFFFFF' }]}>
+                  EMERGÊNCIA ACIONADA
+                </Text>
+              </View>
+              <Text style={[styles.cardTitle, { color: theme.text }]}>
+                Sinal SOS Emitido
+              </Text>
+            </View>
+          </View>
+
+          <Text style={[styles.alertDescription, { color: theme.text2 }]}>
+            Seus contatos de segurança e guardiões foram notificados com prioridade máxima e estão recebendo sua localização.
+          </Text>
+
+          <View
+            style={[
+              styles.alertMetaBox,
+              {
+                backgroundColor: theme.surface2,
+                borderRadius: guardiamV2Radius.md,
+              },
+            ]}
+          >
+            <View style={styles.metaRow}>
+              <Clock size={15} color={theme.text2} />
+              <Text style={[styles.metaText, { color: theme.text2 }]}>
+                Horário do acionamento: {formatTime(alertAt)}
+              </Text>
+            </View>
+            <View style={styles.metaRow}>
+              <MapPin size={15} color={theme.text2} />
+              <Text style={[styles.metaText, { color: theme.text2 }]}>
+                {lastLocation
+                  ? `GPS: ${formatLocation(lastLocation)}`
+                  : 'Aguardando atualização de GPS'}
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.statusCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              borderRadius: guardiamV2Radius.lg,
+            },
+          ]}
+        >
+          <View style={styles.cardHeaderRow}>
+            <View
+              style={[
+                styles.iconBubble,
+                {
+                  backgroundColor: theme.surface2,
+                  borderRadius: guardiamV2Radius.md,
+                },
+              ]}
+            >
+              <ShieldCheck size={28} color={theme.active} />
+            </View>
+            <View style={styles.cardHeaderText}>
+              <View style={styles.activeBadgeRow}>
+                <View style={[styles.activeDot, { backgroundColor: theme.active }]} />
+                <Text style={[styles.activeBadgeText, { color: theme.active }]}>
+                  GUARDIAM ATIVO
+                </Text>
+              </View>
+              <Text style={[styles.cardTitle, { color: theme.text }]}>
+                Modo Proteção em Tempo Real
+              </Text>
+            </View>
+          </View>
+
+          <Text style={[styles.cardDescription, { color: theme.text2 }]}>
+            Sua viagem está segura. A localização está sendo monitorada e compartilhada com seus contatos.
+          </Text>
+
+          <View
+            style={[
+              styles.liveIndicatorBox,
+              {
+                backgroundColor: theme.surface2,
+                borderRadius: guardiamV2Radius.md,
+              },
+            ]}
+          >
+            <Radio size={16} color={theme.active} />
+            <Text style={[styles.liveIndicatorText, { color: theme.text2 }]}>
+              {isTracking
+                ? 'Sinal de localização ativo e transmitindo'
+                : 'Preparando transmissão de GPS'}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {feedback ? <FeedbackBanner value={feedback} theme={theme} /> : null}
+
+      {/* SOS Button Area */}
+      {!alerted ? (
+        <View style={styles.sosSection}>
+          <Pressable
+            accessibilityHint="Mantenha pressionado por 3 segundos para acionar ajuda imediata."
+            accessibilityLabel="SOS Emergência"
+            accessibilityRole="button"
+            delayLongPress={3000}
+            disabled={action === 'alert'}
+            onLongPress={() => void handleAlert()}
+            style={({ pressed }) => [
+              styles.sosOuterRing,
+              {
+                backgroundColor: theme.sosSoft,
+              },
+              pressed && styles.sosRingPressed,
+            ]}
+          >
+            <View
+              style={[
+                styles.sosCenterButton,
+                {
+                  backgroundColor: theme.sos,
+                },
+              ]}
+            >
+              {action === 'alert' ? (
+                <ActivityIndicator color="#FFFFFF" size="large" />
+              ) : (
+                <>
+                  <AlertTriangle size={32} color="#FFFFFF" strokeWidth={2.4} />
+                  <Text style={styles.sosButtonText}>SOS</Text>
+                </>
+              )}
+            </View>
+          </Pressable>
+          <Text style={[styles.sosHoldHint, { color: theme.text3 }]}>
+            Mantenha pressionado por 3 segundos para acionar SOS
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Telemetry / Live Metrics Strip */}
+      <View style={styles.metricsGrid}>
+        <MetricCard
+          icon={<MapPin size={18} color={theme.brand} />}
+          label="Sinal GPS"
+          value={trackingLabel(isTracking, permissionStatus)}
+          theme={theme}
+        />
+        <MetricCard
+          icon={<Clock size={18} color={theme.brand} />}
+          label="Último Envio"
+          value={formatTime(lastSentAt)}
+          theme={theme}
+        />
+        <MetricCard
+          icon={<Activity size={18} color={theme.brand} />}
+          label="Coordenadas"
+          value={formatLocation(lastLocation)}
+          theme={theme}
+        />
       </View>
-      {feedback ? <FeedbackBanner value={feedback} /> : null}
-      <Primary disabled={action === 'start'} icon={action === 'start' ? 'hourglass-outline' : 'power-outline'} label={action === 'start' ? 'Ativando proteção...' : 'Ativar proteção'} onPress={() => void handleStart()} />
+
+      {/* Complete Trip / Deactivate Action */}
+      <Pressable
+        accessibilityLabel="Desativar proteção"
+        accessibilityRole="button"
+        disabled={action === 'complete'}
+        onPress={confirmComplete}
+        style={({ pressed }) => [
+          styles.completeButton,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.borderStrong,
+            borderRadius: guardiamV2Radius.md,
+          },
+          pressed && styles.buttonPressed,
+          action === 'complete' && styles.buttonDisabled,
+        ]}
+      >
+        {action === 'complete' ? (
+          <ActivityIndicator size="small" color={theme.text} />
+        ) : (
+          <>
+            <ShieldCheck size={20} color={theme.text} />
+            <Text style={[styles.completeButtonText, { color: theme.text }]}>
+              Encerrar Modo Proteção
+            </Text>
+          </>
+        )}
+      </Pressable>
+
+      <View style={styles.footerNote}>
+        <Lock size={14} color={theme.text3} />
+        <Text style={[styles.footerText, { color: theme.text3 }]}>
+          Protegido de ponta a ponta · Discreto e confiável
+        </Text>
+      </View>
     </Page>
+  );
+}
+
+function Page({
+  children,
+  compact = false,
+  resolvedMode,
+  scroll = false,
+  theme,
+}: {
+  children: ReactNode;
+  compact?: boolean;
+  resolvedMode: string;
+  scroll?: boolean;
+  theme: any;
+}) {
+  const content = (
+    <View
+      style={[
+        styles.pageContent,
+        compact && styles.pageContentCompact,
+      ]}
+    >
+      {children}
+    </View>
   );
 
   return (
-      <Page scroll compact>
-      <Header onBack={() => router.back()} />
-      <FloatingGuardian disabled={action !== null} confirmed={alerted} onTrigger={() => void guardianController.requestSOS()} />
-      {alerted ? (
-        <View style={[styles.card, styles.alertCard]}>
-          <View style={styles.row}><IconBubble alert icon="alert-circle-outline" /><View style={styles.flex}><Text style={styles.alertEyebrow}>SOS</Text><Text style={styles.cardTitle}>Alerta acionado</Text></View></View>
-          <Text style={styles.alertCopy}>Seus contatos de segurança serão avisados.</Text>
-          <View style={styles.between}><Text style={styles.meta}>{lastLocation ? 'Localização registrada' : 'Localização sendo preparada'}</Text><Text style={styles.meta}>{formatTime(alertAt)}</Text></View>
-          <View style={styles.alertBadge}><View style={styles.redDot} /><Text style={styles.alertBadgeText}>Em andamento</Text></View>
-        </View>
+    <SafeAreaView
+      edges={['top', 'bottom']}
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+    >
+      <StatusBar style={resolvedMode === 'light' ? 'dark' : 'light'} />
+      {scroll ? (
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {content}
+        </ScrollView>
       ) : (
-        <View style={styles.card}>
-          <View style={styles.row}><IconBubble icon="shield-checkmark-outline" /><View style={styles.flex}><Text style={styles.eyebrow}>Modo Proteção</Text><Text style={styles.cardTitle}>GUARDIAM ativo</Text><Text style={styles.cardCopy}>Sua proteção está ativa</Text></View></View>
-          <View style={styles.status}><View style={styles.greenDot} /><Text style={styles.statusText}>{isTracking ? 'Localização pronta para envio' : 'Preparando localização'}</Text><Text style={styles.activeBadge}>Proteção ativa</Text></View>
-        </View>
+        content
       )}
-      {feedback ? <FeedbackBanner value={feedback} /> : null}
-      {!alerted ? (
-        <View style={styles.sosArea}>
-          <Pressable accessibilityHint="Mantenha pressionado por 3 segundos para acionar ajuda." accessibilityLabel="SOS" accessibilityRole="button" delayLongPress={3000} disabled={action === 'alert'} onLongPress={() => void handleAlert()} style={({ pressed }) => [styles.sosOuter, pressed && styles.sosPressed]}>
-            <View style={styles.sosInner}>{action === 'alert' ? <ActivityIndicator color="#FFF" size="large" /> : <Text style={styles.sosText}>SOS</Text>}</View>
-          </Pressable>
-          <Text style={styles.hold}>Segure por 3 segundos para acionar ajuda</Text>
-        </View>
-      ) : null}
-      <View style={styles.metrics}>
-        <Metric icon="location-outline" label="Última localização" value={formatLocation(lastLocation)} />
-        <Metric icon="time-outline" label="Última atualização" value={formatTime(lastSentAt)} />
-        <Metric icon="radio-outline" label="Tracking" value={trackingLabel(isTracking, permissionStatus)} />
+    </SafeAreaView>
+  );
+}
+
+function StatePage({
+  children,
+  loading = false,
+  resolvedMode,
+  safe = false,
+  text,
+  theme,
+  title,
+}: {
+  children?: ReactNode;
+  loading?: boolean;
+  resolvedMode: string;
+  safe?: boolean;
+  text?: string;
+  theme: any;
+  title: string;
+}) {
+  return (
+    <Page resolvedMode={resolvedMode} theme={theme}>
+      <View style={styles.centerContent}>
+        {loading ? (
+          <ActivityIndicator size="large" color={theme.brand} />
+        ) : (
+          <View
+            style={[
+              styles.stateIconBubble,
+              {
+                backgroundColor: safe ? theme.activeSoft : theme.sosSoft,
+                borderRadius: guardiamV2Radius.pill,
+              },
+            ]}
+          >
+            {safe ? (
+              <CheckCircle size={36} color={theme.active} />
+            ) : (
+              <AlertTriangle size={36} color={theme.sos} />
+            )}
+          </View>
+        )}
+        <Text style={[styles.stateTitle, { color: theme.text }]}>{title}</Text>
+        {text ? (
+          <Text style={[styles.stateText, { color: theme.text2 }]}>{text}</Text>
+        ) : null}
+        {children ? <View style={styles.stateActions}>{children}</View> : null}
       </View>
-      {locationError ? <FeedbackBanner value={{ message: locationError, error: true }} /> : null}
-      {alerted ? <>
-        <Primary disabled={action === 'complete'} icon="shield-checkmark-outline" label={action === 'complete' ? 'Encerrando proteção...' : 'Estou em segurança agora'} onPress={() => void handleComplete()} />
-        <Pressable accessibilityRole="button" onPress={() => Alert.alert('Detalhes do alerta', `Status: Em andamento\nHorário: ${formatTime(alertAt)}${lastLocation ? '\nLocalização registrada.' : ''}`)} style={styles.link}><Text style={styles.linkText}>Ver detalhes do alerta</Text><Ionicons color="#1B6EE0" name="chevron-forward" size={16} /></Pressable>
-      </> : null}
-      <Secondary disabled={action === 'complete'} label="Desativar proteção" onPress={confirmComplete} />
     </Page>
   );
 }
 
-function Page({ children, compact = false, scroll = false }: { children: ReactNode; compact?: boolean; scroll?: boolean }) {
-  const content = scroll ? <ScrollView contentContainerStyle={[styles.content, compact && styles.compact]} showsVerticalScrollIndicator={false}>{children}</ScrollView> : children;
-  return <SafeAreaView style={styles.safe}><StatusBar style="light" />{content}</SafeAreaView>;
-}
-function StatePage({ children, loading = false, safe = false, text, title }: { children?: ReactNode; loading?: boolean; safe?: boolean; text?: string; title: string }) {
-  return <Page><View style={styles.center}><Brand />{loading ? <ActivityIndicator color="#1B6EE0" size="large" /> : <IconBubble alert={!safe} icon={safe ? 'checkmark-circle-outline' : 'warning-outline'} />}<Text style={styles.stateTitle}>{title}</Text>{text ? <Text style={styles.copy}>{text}</Text> : null}{children}</View></Page>;
-}
-function Brand() { return <View style={styles.brandRow}><View style={styles.logo}><Ionicons color="#1B6EE0" name="shield-checkmark-outline" size={20} /></View><Text style={styles.brand}>GUARDIAM</Text></View>; }
-function Header({ onBack }: { onBack: () => void }) { return <View style={styles.header}><Pressable accessibilityLabel="Voltar" accessibilityRole="button" onPress={onBack} style={styles.back}><Ionicons color="#0F172A" name="chevron-back" size={22} /></Pressable><Brand /><View style={styles.spacer} /></View>; }
-function IconBubble({ alert = false, icon }: { alert?: boolean; icon: IconName }) { return <View style={[styles.icon, alert && styles.iconAlert]}><Ionicons color={alert ? '#DC2626' : '#10B981'} name={icon} size={32} /></View>; }
-function Metric({ icon, label, value }: { icon: IconName; label: string; value: string }) { return <View style={styles.metric}><Ionicons color="#1B6EE0" name={icon} size={18} /><Text style={styles.metricLabel}>{label}</Text><Text numberOfLines={2} style={styles.metricValue}>{value}</Text></View>; }
-function Primary({ disabled = false, icon, label, onPress }: { disabled?: boolean; icon: IconName; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.primary, (pressed || disabled) && styles.dim]}><Ionicons color="#0F172A" name={icon} size={22} /><Text style={styles.primaryText}>{label}</Text></Pressable>; }
-function Secondary({ disabled = false, label, onPress }: { disabled?: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.secondary, (pressed || disabled) && styles.dim]}><Text style={styles.secondaryText}>{label}</Text></Pressable>; }
-function FeedbackBanner({ value }: { value: Feedback }) { return <View style={[styles.feedback, value.error && styles.feedbackError]}><Ionicons color={value.error ? '#DC2626' : '#10B981'} name={value.error ? 'warning-outline' : 'checkmark-circle-outline'} size={18} /><Text style={[styles.feedbackText, value.error && styles.alertCopy]}>{value.message}</Text></View>; }
+function Header({ onBack, theme }: { onBack: () => void; theme: any }) {
+  return (
+    <View style={styles.header}>
+      <Pressable
+        accessibilityLabel="Voltar"
+        accessibilityRole="button"
+        onPress={onBack}
+        style={({ pressed }) => [
+          styles.backButton,
+          {
+            backgroundColor: theme.surface,
+            borderColor: theme.border,
+            borderRadius: guardiamV2Radius.pill,
+          },
+          pressed && styles.buttonPressed,
+        ]}
+      >
+        <ChevronLeft size={20} color={theme.text} />
+      </Pressable>
 
-function formatLocation(value: { lat: number; lng: number } | null) { return value ? `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}` : 'Aguardando'; }
+      <View style={styles.brandRow}>
+        <View
+          style={[
+            styles.brandLogo,
+            {
+              backgroundColor: theme.brand,
+              borderRadius: guardiamV2Radius.md,
+            },
+          ]}
+        >
+          <Shield size={20} color={theme.background} strokeWidth={2.2} />
+        </View>
+        <Text style={[styles.brandText, { color: theme.text }]}>GUARDIAM</Text>
+      </View>
+
+      <View style={styles.headerSpacer} />
+    </View>
+  );
+}
+
+function MetricCard({
+  icon,
+  label,
+  theme,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  theme: any;
+  value: string;
+}) {
+  return (
+    <View
+      style={[
+        styles.metricCard,
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          borderRadius: guardiamV2Radius.md,
+        },
+      ]}
+    >
+      <View style={styles.metricIconBox}>{icon}</View>
+      <Text style={[styles.metricLabel, { color: theme.text3 }]}>{label}</Text>
+      <Text
+        numberOfLines={2}
+        style={[styles.metricValue, { color: theme.text }]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function PrimaryButton({
+  disabled = false,
+  icon,
+  label,
+  onPress,
+  theme,
+}: {
+  disabled?: boolean;
+  icon?: ReactNode;
+  label: string;
+  onPress: () => void;
+  theme: any;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.primaryButton,
+        {
+          backgroundColor: theme.brand,
+          borderRadius: guardiamV2Radius.md,
+        },
+        pressed && !disabled && styles.buttonPressed,
+        disabled && styles.buttonDisabled,
+      ]}
+    >
+      {icon}
+      <Text style={[styles.primaryButtonText, { color: theme.background }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function SecondaryButton({
+  disabled = false,
+  label,
+  onPress,
+  theme,
+}: {
+  disabled?: boolean;
+  label: string;
+  onPress: () => void;
+  theme: any;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.secondaryButton,
+        {
+          borderColor: theme.borderStrong,
+          borderRadius: guardiamV2Radius.md,
+        },
+        pressed && !disabled && styles.buttonPressed,
+        disabled && styles.buttonDisabled,
+      ]}
+    >
+      <Text style={[styles.secondaryButtonText, { color: theme.text }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function FeedbackBanner({
+  theme,
+  value,
+}: {
+  theme: any;
+  value: Feedback;
+}) {
+  return (
+    <View
+      style={[
+        styles.feedbackBanner,
+        {
+          backgroundColor: value.error ? theme.sosSoft : theme.activeSoft,
+          borderColor: value.error ? theme.sos : theme.active,
+          borderRadius: guardiamV2Radius.md,
+        },
+      ]}
+    >
+      {value.error ? (
+        <AlertCircle size={18} color={theme.sos} />
+      ) : (
+        <CheckCircle size={18} color={theme.active} />
+      )}
+      <Text
+        style={[
+          styles.feedbackText,
+          { color: value.error ? theme.sos : theme.active },
+        ]}
+      >
+        {value.message}
+      </Text>
+    </View>
+  );
+}
+
+function formatLocation(value: { lat: number; lng: number } | null) {
+  return value
+    ? `${value.lat.toFixed(4)}, ${value.lng.toFixed(4)}`
+    : 'Aguardando GPS';
+}
+
 function formatTime(value: Date | null) {
   if (!value) return '--:--';
-
   return new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(value);
 }
-function trackingLabel(active: boolean, permission: string | null) { return active ? 'Ativo' : permission === 'denied' ? 'Permissão necessária' : 'Preparando'; }
-function requireToken(token: string | null) { if (!token) throw new Error('Sessão expirada. Faça login novamente.'); return token; }
-function errorMessage(error: unknown) { return error instanceof Error ? error.message : 'Tente novamente em instantes.'; }
-function isFinalStatus(status: TripStatus) { return ['ARRIVED', 'COMPLETED', 'CANCELLED', 'EXPIRED'].includes(status); }
-function getGuardianProtectionStatus(status: TripStatus | undefined, ended: boolean) {
+
+function trackingLabel(active: boolean, permission: string | null) {
+  return active
+    ? 'Ativo'
+    : permission === 'denied'
+      ? 'Permissão necessária'
+      : 'Preparando';
+}
+
+function requireToken(token: string | null) {
+  if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+  return token;
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error
+    ? error.message
+    : 'Tente novamente em instantes.';
+}
+
+function isFinalStatus(status: TripStatus) {
+  return ['ARRIVED', 'COMPLETED', 'CANCELLED', 'EXPIRED'].includes(status);
+}
+
+function getGuardianProtectionStatus(
+  status: TripStatus | undefined,
+  ended: boolean
+) {
   if (ended || (status && isFinalStatus(status))) return 'ENDED' as const;
   if (status === 'ALERT_TRIGGERED') return 'ALERTED' as const;
   if (status === 'ACTIVE') return 'ACTIVE' as const;
@@ -303,10 +949,338 @@ function getGuardianProtectionStatus(status: TripStatus | undefined, ended: bool
 }
 
 const styles = StyleSheet.create({
-  safe: { backgroundColor: '#0F172A', flex: 1 }, content: { flexGrow: 1, padding: 20 }, compact: { paddingHorizontal: 18, paddingVertical: 14 }, center: { alignItems: 'center', flex: 1, gap: 16, justifyContent: 'center', padding: 24 },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 }, back: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, height: 42, justifyContent: 'center', width: 42 }, spacer: { width: 42 }, brandRow: { alignItems: 'center', flexDirection: 'row', gap: 9 }, logo: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 14, height: 38, justifyContent: 'center', width: 38 }, brand: { color: '#0F172A', fontSize: 20, fontWeight: '800', letterSpacing: 1.2 },
-  hero: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#E2E8F0', borderRadius: 30, borderWidth: 1, marginBottom: 18, padding: 28 }, icon: { alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 28, height: 58, justifyContent: 'center', marginBottom: 12, width: 58 }, iconAlert: { backgroundColor: '#FFF4F2' }, eyebrow: { color: '#1B6EE0', fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' }, title: { color: '#FFFFFF', fontSize: 28, fontWeight: '900', marginTop: 5 }, copy: { color: '#94A3B8', fontSize: 15, lineHeight: 22, textAlign: 'center' }, stateTitle: { color: '#FFFFFF', fontSize: 24, fontWeight: '900', lineHeight: 31, textAlign: 'center' },
-  card: { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0', borderRadius: 26, borderWidth: 1, padding: 16 }, alertCard: { backgroundColor: '#FFF4F2', borderColor: '#7A263A' }, row: { alignItems: 'center', flexDirection: 'row', gap: 13 }, flex: { flex: 1 }, cardTitle: { color: '#FFFFFF', fontSize: 21, fontWeight: '900' }, cardCopy: { color: '#475569', fontSize: 13, marginTop: 3 }, status: { alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 15, flexDirection: 'row', gap: 7, marginTop: 12, padding: 10 }, greenDot: { backgroundColor: '#10B981', borderRadius: 5, height: 9, width: 9 }, statusText: { color: '#475569', flex: 1, fontSize: 11 }, activeBadge: { backgroundColor: '#E6F7F0', borderRadius: 12, color: '#065F46', fontSize: 10, fontWeight: '800', padding: 6 }, alertEyebrow: { color: '#DC2626', fontSize: 11, fontWeight: '900' }, alertCopy: { color: '#991B1B', fontSize: 13, lineHeight: 19 }, between: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }, meta: { color: '#475569', fontSize: 11 }, alertBadge: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#51182A', borderRadius: 12, flexDirection: 'row', gap: 7, marginTop: 11, padding: 7 }, redDot: { backgroundColor: '#FB7185', borderRadius: 4, height: 8, width: 8 }, alertBadgeText: { color: '#991B1B', fontSize: 11, fontWeight: '800' },
-  sosArea: { alignItems: 'center', marginVertical: 14 }, sosOuter: { alignItems: 'center', backgroundColor: '#FFF4F2', borderRadius: 70, height: 138, justifyContent: 'center', width: 138 }, sosInner: { alignItems: 'center', backgroundColor: '#E11D48', borderRadius: 55, height: 108, justifyContent: 'center', width: 108 }, sosPressed: { transform: [{ scale: 0.96 }] }, sosText: { color: '#FFF', fontSize: 30, fontWeight: '900' }, hold: { color: '#475569', fontSize: 12, fontWeight: '700', marginTop: 8 },
-  metrics: { flexDirection: 'row', gap: 7, marginBottom: 10 }, metric: { backgroundColor: '#FFFFFF', borderRadius: 17, flex: 1, minHeight: 91, padding: 10 }, metricLabel: { color: '#94A3B8', fontSize: 9, marginTop: 6 }, metricValue: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', marginTop: 4 }, primary: { alignItems: 'center', alignSelf: 'stretch', backgroundColor: '#1B6EE0', borderRadius: 20, flexDirection: 'row', gap: 10, justifyContent: 'center', minHeight: 54, paddingHorizontal: 18 }, primaryText: { color: '#0F172A', fontSize: 15, fontWeight: '900' }, secondary: { alignItems: 'center', alignSelf: 'stretch', borderColor: '#324153', borderRadius: 18, borderWidth: 1, justifyContent: 'center', marginTop: 10, minHeight: 48 }, secondaryText: { color: '#475569', fontSize: 14, fontWeight: '800' }, dim: { opacity: 0.65 }, link: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', padding: 10 }, linkText: { color: '#1B6EE0', fontSize: 13, fontWeight: '800' }, feedback: { alignItems: 'flex-start', backgroundColor: '#E6F7F0', borderRadius: 15, flexDirection: 'row', gap: 8, marginVertical: 9, padding: 10 }, feedbackError: { backgroundColor: '#FFF4F2' }, feedbackText: { color: '#065F46', flex: 1, fontSize: 12, lineHeight: 17 },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: guardiamV2Spacing.xl,
+  },
+  pageContent: {
+    flexGrow: 1,
+    gap: guardiamV2Spacing.md,
+    paddingHorizontal: guardiamV2Spacing.lg,
+    paddingTop: guardiamV2Spacing.sm,
+  },
+  pageContentCompact: {
+    gap: guardiamV2Spacing.md,
+    paddingHorizontal: guardiamV2Spacing.md,
+    paddingTop: guardiamV2Spacing.xs,
+  },
+  centerContent: {
+    alignItems: 'center',
+    flex: 1,
+    gap: guardiamV2Spacing.md,
+    justifyContent: 'center',
+    padding: guardiamV2Spacing.xl,
+  },
+  stateIconBubble: {
+    alignItems: 'center',
+    height: 72,
+    justifyContent: 'center',
+    marginBottom: guardiamV2Spacing.sm,
+    width: 72,
+  },
+  stateTitle: {
+    ...guardiamV2Typography.title,
+    fontSize: 22,
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  stateText: {
+    ...guardiamV2Typography.body,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  stateActions: {
+    alignSelf: 'stretch',
+    gap: guardiamV2Spacing.sm,
+    marginTop: guardiamV2Spacing.lg,
+  },
+  header: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    height: 56,
+    justifyContent: 'space-between',
+    marginBottom: guardiamV2Spacing.xs,
+  },
+  backButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    height: 40,
+    justifyContent: 'center',
+    width: 40,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  brandRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  brandLogo: {
+    alignItems: 'center',
+    height: 34,
+    justifyContent: 'center',
+    width: 34,
+  },
+  brandText: {
+    ...guardiamV2Typography.title,
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  heroCard: {
+    alignItems: 'center',
+    borderWidth: 1,
+    marginBottom: guardiamV2Spacing.sm,
+    padding: guardiamV2Spacing.xl,
+  },
+  iconBubble: {
+    alignItems: 'center',
+    height: 56,
+    justifyContent: 'center',
+    width: 56,
+  },
+  eyebrow: {
+    ...guardiamV2Typography.label,
+    fontSize: 11,
+    letterSpacing: 1,
+    marginBottom: 4,
+    marginTop: guardiamV2Spacing.sm,
+  },
+  title: {
+    ...guardiamV2Typography.title,
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  copy: {
+    ...guardiamV2Typography.body,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  statusCard: {
+    borderWidth: 1,
+    gap: guardiamV2Spacing.sm,
+    padding: guardiamV2Spacing.lg,
+  },
+  cardHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cardHeaderText: {
+    flex: 1,
+  },
+  cardTitle: {
+    ...guardiamV2Typography.title,
+    fontSize: 18,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  cardDescription: {
+    ...guardiamV2Typography.body,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  activeBadgeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  activeDot: {
+    borderRadius: 4,
+    height: 7,
+    width: 7,
+  },
+  activeBadgeText: {
+    ...guardiamV2Typography.label,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  alertBadgeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  pulseDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  alertBadgeText: {
+    ...guardiamV2Typography.label,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  alertDescription: {
+    ...guardiamV2Typography.body,
+    fontSize: 14,
+    fontWeight: '500',
+    lineHeight: 20,
+  },
+  alertMetaBox: {
+    gap: 6,
+    marginTop: 4,
+    padding: guardiamV2Spacing.md,
+  },
+  metaRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  metaText: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 12,
+  },
+  liveIndicatorBox: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+    paddingHorizontal: guardiamV2Spacing.md,
+    paddingVertical: 10,
+  },
+  liveIndicatorText: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 12,
+  },
+  sosSection: {
+    alignItems: 'center',
+    marginVertical: guardiamV2Spacing.sm,
+  },
+  sosOuterRing: {
+    alignItems: 'center',
+    borderRadius: 80,
+    height: 150,
+    justifyContent: 'center',
+    width: 150,
+  },
+  sosRingPressed: {
+    transform: [{ scale: 0.96 }],
+  },
+  sosCenterButton: {
+    alignItems: 'center',
+    borderRadius: 60,
+    height: 116,
+    justifyContent: 'center',
+    width: 116,
+    gap: 2,
+  },
+  sosButtonText: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+  sosHoldHint: {
+    ...guardiamV2Typography.label,
+    fontSize: 11,
+    marginTop: guardiamV2Spacing.sm,
+    textAlign: 'center',
+    textTransform: 'none',
+  },
+  metricsGrid: {
+    flexDirection: 'row',
+    gap: guardiamV2Spacing.sm,
+  },
+  metricCard: {
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 88,
+    padding: guardiamV2Spacing.sm + 2,
+  },
+  metricIconBox: {
+    marginBottom: 4,
+  },
+  metricLabel: {
+    ...guardiamV2Typography.label,
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  primaryButton: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    height: 54,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  primaryButtonText: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    height: 50,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  secondaryButtonText: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  completeButton: {
+    alignItems: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    height: 52,
+    justifyContent: 'center',
+    marginTop: 2,
+    width: '100%',
+  },
+  completeButtonText: {
+    ...guardiamV2Typography.bodySemibold,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  buttonPressed: {
+    opacity: 0.75,
+    transform: [{ scale: 0.985 }],
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  feedbackBanner: {
+    alignItems: 'center',
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: guardiamV2Spacing.md,
+    paddingVertical: 12,
+  },
+  feedbackText: {
+    ...guardiamV2Typography.bodySemibold,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  footerNote: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    marginTop: 4,
+    paddingBottom: guardiamV2Spacing.xs,
+  },
+  footerText: {
+    ...guardiamV2Typography.body,
+    fontSize: 12,
+    textAlign: 'center',
+  },
 });
