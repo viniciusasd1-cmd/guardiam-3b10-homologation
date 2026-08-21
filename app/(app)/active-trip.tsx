@@ -101,7 +101,9 @@ export default function ActiveTripScreen() {
     return () => {
       setSosCritical(false);
     };
-  }, [alerted, setSosCritical]);  useEffect(() => {
+  }, [alerted, setSosCritical]);
+
+  useEffect(() => {
     if (
       safeTrip &&
       !ended &&
