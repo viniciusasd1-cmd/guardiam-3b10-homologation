@@ -16,7 +16,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis."
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "locationWhenInUsePermission": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis.",
+          "locationAlwaysAndWhenInUsePermission": "O GUARDIAM usa sua localização em segundo plano durante a proteção ativa para manter seus contatos confiáveis informados mesmo com o app minimizado."
         }
       ]
     ],
@@ -26,12 +29,25 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis."
+        "NSLocationWhenInUseUsageDescription": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "O GUARDIAM usa sua localização em segundo plano durante a proteção ativa para manter seus contatos confiáveis informados mesmo com o app minimizado.",
+        "NSLocationAlwaysUsageDescription": "O GUARDIAM usa sua localização em segundo plano durante a proteção ativa para manter seus contatos confiáveis informados mesmo com o app minimizado.",
+        "UIBackgroundModes": [
+          "location"
+        ]
       },
       "bundleIdentifier": "com.guardiam.ride"
     },
     "android": {
       "package": "com.guardiam.ride",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
       ],
