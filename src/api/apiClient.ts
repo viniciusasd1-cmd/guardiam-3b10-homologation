@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = 'http://localhost:3001/api';
+const DEFAULT_API_BASE_URL = 'http://192.168.18.10:3002/api';
 
 export type ApiErrorPayload = {
   message?: string | string[];
