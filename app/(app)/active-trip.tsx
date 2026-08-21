@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Pressable, SafeAreaView, ScrollView, StyleShe
 import { completeTrip, getActiveTrip, getSafeTrip, startTrip, triggerPanicAlert } from '../../src/api/safeTripsApi';
 import { useAuth } from '../../src/auth/AuthContext';
 import { useTripLocationTracking } from '../../src/location/useTripLocationTracking';
+import { clearActiveTripSession, saveActiveTripSession } from '../../src/location/activeTripSessionStorage';
 import { createOrLoadSos, loadPendingSos, markSosConfirmed, markSosPending, markSosSending } from '../../src/sos/sosQueue';
 import type { SafeTrip, TripStatus } from '../../src/types/safeTrip';
 import { createEventId } from '../../src/utils/uuid';
@@ -100,7 +101,25 @@ export default function ActiveTripScreen() {
     return () => {
       setSosCritical(false);
     };
-  }, [alerted, setSosCritical]);
+  }, [alerted, setSosCritical]);  useEffect(() => {
+    if (
+      safeTrip &&
+      !ended &&
+      (safeTrip.status === 'ACTIVE' || safeTrip.status === 'ALERT_TRIGGERED')
+    ) {
+      void saveActiveTripSession({
+        safeTripId: safeTrip.id,
+        status: safeTrip.status,
+        startedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    if (ended || (safeTrip && isFinalStatus(safeTrip.status))) {
+      void clearActiveTripSession();
+    }
+  }, [ended, safeTrip?.id, safeTrip?.status]);
+
   useEffect(() => {
     if (!safeTrip || !active || isTracking || trackingAttempt.current === safeTrip.id) return;
     trackingAttempt.current = safeTrip.id;
