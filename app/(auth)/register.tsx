@@ -1,59 +1,267 @@
+import { Eye, EyeOff, Lock, Mail, Shield, User } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { useAuth } from '../../src/auth/AuthContext';
-import { AppButton } from '../../src/components/AppButton';
-import { AppInput } from '../../src/components/AppInput';
-import { Screen } from '../../src/components/Screen';
-import { colors } from '../../src/constants/colors';
+import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
+import {
+  guardiamV2Radius,
+  guardiamV2Spacing,
+  guardiamV2Typography,
+} from '../../src/theme/guardiamV2';
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const { theme, resolvedMode } = useGuardiamTheme();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   async function handleRegister() {
+    if (loading) return;
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setErrorMessage('Preencha todos os campos obrigatórios.');
+      return;
+    }
+    setErrorMessage(null);
     setLoading(true);
-
     try {
       await register(name.trim(), email.trim(), password);
       router.replace('/(app)/home');
     } catch (error) {
-      Alert.alert('Não foi possível criar a conta', getErrorMessage(error));
+      setErrorMessage(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <Screen>
-      <View style={styles.header}>
-        <Text style={styles.title}>Criar conta</Text>
-        <Text style={styles.subtitle}>
-          Seu cofre de segurança para viagens começa com um cadastro simples.
-        </Text>
-      </View>
+    <SafeAreaView
+      edges={['top', 'bottom']}
+      style={[styles.safeArea, { backgroundColor: theme.background }]}
+    >
+      <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.keyboard}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.hero}>
+              <View
+                style={[
+                  styles.shield,
+                  {
+                    backgroundColor: theme.brand,
+                    borderRadius: guardiamV2Radius.md,
+                  },
+                ]}
+              >
+                <Shield size={36} color={theme.background} strokeWidth={2.2} />
+              </View>
+              <Text style={[styles.brand, { color: theme.text }]}>GUARDIAM</Text>
+              <Text style={[styles.tagline, { color: theme.text2 }]}>
+                Crie sua conta para ativar a proteção
+              </Text>
+            </View>
 
-      <View style={styles.form}>
-        <AppInput label="Nome" onChangeText={setName} value={name} />
-        <AppInput
-          autoCapitalize="none"
-          keyboardType="email-address"
-          label="E-mail"
-          onChangeText={setEmail}
-          value={email}
-        />
-        <AppInput
-          label="Senha"
-          onChangeText={setPassword}
-          secureTextEntry
-          value={password}
-        />
-        <AppButton loading={loading} onPress={handleRegister} title="Criar conta" />
-      </View>
-    </Screen>
+            <View
+              style={[
+                styles.formCard,
+                {
+                  backgroundColor: theme.surface,
+                  borderColor: theme.border,
+                  borderRadius: guardiamV2Radius.lg,
+                },
+              ]}
+            >
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { color: theme.text2 }]}>Nome completo</Text>
+                <View
+                  style={[
+                    styles.inputField,
+                    {
+                      backgroundColor: theme.surface2,
+                      borderColor: focusedField === 'name' ? theme.text : theme.border,
+                      borderWidth: focusedField === 'name' ? 2 : 1,
+                      borderRadius: guardiamV2Radius.md,
+                    },
+                    errorMessage && { backgroundColor: theme.sosSoft, borderColor: theme.sos },
+                  ]}
+                >
+                  <User size={19} color={theme.text3} strokeWidth={2} />
+                  <TextInput
+                    accessibilityLabel="Nome completo"
+                    autoCapitalize="words"
+                    autoComplete="name"
+                    placeholder="Seu nome"
+                    placeholderTextColor={theme.text3}
+                    returnKeyType="next"
+                    value={name}
+                    onBlur={() => setFocusedField(null)}
+                    onChangeText={(value) => {
+                      setName(value);
+                      setErrorMessage(null);
+                    }}
+                    onFocus={() => setFocusedField('name')}
+                    style={[styles.input, { color: theme.text }]}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { color: theme.text2 }]}>E-mail</Text>
+                <View
+                  style={[
+                    styles.inputField,
+                    {
+                      backgroundColor: theme.surface2,
+                      borderColor: focusedField === 'email' ? theme.text : theme.border,
+                      borderWidth: focusedField === 'email' ? 2 : 1,
+                      borderRadius: guardiamV2Radius.md,
+                    },
+                    errorMessage && { backgroundColor: theme.sosSoft, borderColor: theme.sos },
+                  ]}
+                >
+                  <Mail size={19} color={theme.text3} strokeWidth={2} />
+                  <TextInput
+                    accessibilityLabel="E-mail"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    placeholder="seu@email.com"
+                    placeholderTextColor={theme.text3}
+                    returnKeyType="next"
+                    value={email}
+                    onBlur={() => setFocusedField(null)}
+                    onChangeText={(value) => {
+                      setEmail(value);
+                      setErrorMessage(null);
+                    }}
+                    onFocus={() => setFocusedField('email')}
+                    style={[styles.input, { color: theme.text }]}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { color: theme.text2 }]}>Senha</Text>
+                <View
+                  style={[
+                    styles.inputField,
+                    {
+                      backgroundColor: theme.surface2,
+                      borderColor: focusedField === 'password' ? theme.text : theme.border,
+                      borderWidth: focusedField === 'password' ? 2 : 1,
+                      borderRadius: guardiamV2Radius.md,
+                    },
+                    errorMessage && { backgroundColor: theme.sosSoft, borderColor: theme.sos },
+                  ]}
+                >
+                  <Lock size={19} color={theme.text3} strokeWidth={2} />
+                  <TextInput
+                    accessibilityLabel="Senha"
+                    autoCapitalize="none"
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    placeholderTextColor={theme.text3}
+                    returnKeyType="done"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onBlur={() => setFocusedField(null)}
+                    onChangeText={(value) => {
+                      setPassword(value);
+                      setErrorMessage(null);
+                    }}
+                    onFocus={() => setFocusedField('password')}
+                    onSubmitEditing={() => void handleRegister()}
+                    style={[styles.passwordInput, { color: theme.text }]}
+                  />
+                  <Pressable
+                    accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: showPassword }}
+                    hitSlop={10}
+                    onPress={() => setShowPassword((visible) => !visible)}
+                    style={styles.eyeButton}
+                  >
+                    {showPassword ? <EyeOff size={18} color={theme.text3} /> : <Eye size={18} color={theme.text3} />}
+                  </Pressable>
+                </View>
+              </View>
+
+              {errorMessage ? (
+                <View accessibilityLiveRegion="polite" style={styles.errorBox}>
+                  <Text style={[styles.errorText, { color: theme.sos }]}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: loading, busy: loading }}
+                disabled={loading}
+                onPress={() => void handleRegister()}
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  { backgroundColor: theme.brand, borderRadius: guardiamV2Radius.md },
+                  pressed && !loading && styles.pressed,
+                  loading && styles.disabled,
+                ]}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color={theme.background} />
+                ) : (
+                  <Text style={[styles.primaryText, { color: theme.background }]}>Criar Conta</Text>
+                )}
+              </Pressable>
+
+              <Pressable
+                accessibilityLabel="Já tem conta? Entrar"
+                accessibilityRole="button"
+                accessibilityState={{ disabled: loading }}
+                disabled={loading}
+                onPress={() => router.replace('/(auth)/login')}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  { borderColor: theme.borderStrong, borderRadius: guardiamV2Radius.md },
+                  pressed && styles.pressed,
+                  loading && styles.disabled,
+                ]}
+              >
+                <Text style={[styles.secondaryText, { color: theme.text }]}>Já tem conta? Entrar</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={[styles.footerText, { color: theme.text3 }]}>
+                Protegido de ponta a ponta · Discreto e confiável
+              </Text>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -62,21 +270,80 @@ function getErrorMessage(error: unknown) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    gap: 8,
-    paddingTop: 24,
+  safeArea: { flex: 1 },
+  keyboard: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
+  content: {
+    flexGrow: 1,
+    minHeight: '100%',
+    paddingHorizontal: guardiamV2Spacing.lg,
+    justifyContent: 'center',
+    paddingVertical: guardiamV2Spacing.lg,
   },
-  title: {
-    color: colors.text,
-    fontSize: 24,
-    fontWeight: '800',
+  hero: { alignItems: 'center', marginBottom: guardiamV2Spacing.xl },
+  shield: {
+    width: 64,
+    height: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: guardiamV2Spacing.md,
   },
-  subtitle: {
-    color: colors.textMuted,
+  brand: {
+    ...guardiamV2Typography.title,
+    fontFamily: 'Manrope_800ExtraBold',
+    marginBottom: guardiamV2Spacing.sm,
+    textAlign: 'center',
+  },
+  tagline: {
+    ...guardiamV2Typography.body,
+    fontFamily: 'Manrope_400Regular',
+    textAlign: 'center',
+  },
+  formCard: {
+    width: '100%',
+    padding: guardiamV2Spacing.lg,
+    borderWidth: 1,
+  },
+  formGroup: { marginTop: guardiamV2Spacing.md },
+  label: {
+    ...guardiamV2Typography.label,
+    fontFamily: 'Manrope_600SemiBold',
+    marginBottom: guardiamV2Spacing.sm,
+  },
+  inputField: {
+    height: 56,
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: guardiamV2Spacing.md,
+  },
+  input: {
+    flex: 1,
+    height: 56,
+    marginLeft: 12,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontFamily: 'Manrope_400Regular',
     fontSize: 15,
-    lineHeight: 23,
   },
-  form: {
-    gap: 14,
+  passwordInput: {
+    flex: 1,
+    height: 56,
+    marginLeft: 12,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontFamily: 'Manrope_400Regular',
+    fontSize: 15,
   },
+  eyeButton: { width: 32, height: 48, alignItems: 'center', justifyContent: 'center', marginLeft: guardiamV2Spacing.sm },
+  errorBox: { paddingHorizontal: 3, marginTop: 2 },
+  errorText: { fontFamily: 'Manrope_400Regular', fontSize: 13, lineHeight: 18 },
+  primaryButton: { width: '100%', height: 56, alignItems: 'center', justifyContent: 'center', marginTop: guardiamV2Spacing.md, paddingHorizontal: 20 },
+  primaryText: { ...guardiamV2Typography.bodySemibold, fontFamily: 'Manrope_600SemiBold', fontSize: 16, lineHeight: 22 },
+  secondaryButton: { width: '100%', height: 54, alignItems: 'center', justifyContent: 'center', marginTop: guardiamV2Spacing.sm, borderWidth: 1 },
+  secondaryText: { ...guardiamV2Typography.bodySemibold, fontFamily: 'Manrope_600SemiBold' },
+  footer: { alignItems: 'center', justifyContent: 'center', paddingTop: guardiamV2Spacing.xl, paddingBottom: guardiamV2Spacing.sm },
+  footerText: { fontFamily: 'Manrope_400Regular', fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  pressed: { opacity: 0.75, transform: [{ scale: 0.985 }] },
+  disabled: { opacity: 0.5 },
 });
