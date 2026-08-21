@@ -12,13 +12,22 @@
       "expo-asset",
       "expo-font",
       "./plugins/withRemoveSystemAlertWindow",
-      "./plugins/withPreviewCleartext"
+      "./plugins/withPreviewCleartext",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis."
+      }
     },
     "android": {
       "package": "com.guardiam.ride",
