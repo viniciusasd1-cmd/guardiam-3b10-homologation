@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from '@expo-google-fonts/inter/useFonts';
 import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
@@ -12,10 +12,12 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/auth/AuthContext';
+import type { GuardiamV2ThemeMode } from '../src/theme/guardiamV2';
 import {
   GuardiamThemeProvider,
   useGuardiamTheme,
 } from '../src/theme/GuardiamThemeProvider';
+import { loadThemePreference } from '../src/theme/themeStorage';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -75,6 +77,11 @@ function RootThemeShell() {
 }
 
 export default function RootLayout() {
+  const [initialUserPreference, setInitialUserPreference] =
+    useState<GuardiamV2ThemeMode>('light');
+
+  const [themeHydrated, setThemeHydrated] = useState(false);
+
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Manrope_400Regular,
@@ -83,6 +90,31 @@ export default function RootLayout() {
     Manrope_800ExtraBold,
   });
 
+  const fontsReady = fontsLoaded || !!fontError;
+  const appReady = fontsReady && themeHydrated;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadThemePreference()
+      .then((preference) => {
+        if (!isMounted) return;
+
+        setInitialUserPreference(preference);
+        setThemeHydrated(true);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+
+        setInitialUserPreference('light');
+        setThemeHydrated(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     if (fontError) {
       console.error(
@@ -90,16 +122,18 @@ export default function RootLayout() {
         fontError
       );
     }
+  }, [fontError]);
 
-    if (fontsLoaded || fontError) {
+  useEffect(() => {
+    if (appReady) {
       void SplashScreen.hideAsync().catch(() => undefined);
     }
-  }, [fontsLoaded, fontError]);
+  }, [appReady]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!appReady) return null;
 
   return (
-    <GuardiamThemeProvider>
+    <GuardiamThemeProvider initialUserPreference={initialUserPreference}>
       <RootThemeShell />
     </GuardiamThemeProvider>
   );
