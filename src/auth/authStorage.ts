@@ -52,6 +52,17 @@ export async function clearSession() {
   ]);
 }
 
+export async function getBackgroundAccessToken(): Promise<string | null> {
+  try {
+    const accessToken = await getStorageItem(TOKEN_KEY);
+    const normalized = accessToken?.trim();
+
+    return normalized ? normalized : null;
+  } catch {
+    return null;
+  }
+}
+
 async function getStorageItem(key: StorageKey) {
   if (Platform.OS === 'web') {
     return getWebStorageItem(key);
