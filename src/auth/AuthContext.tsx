@@ -8,6 +8,7 @@ import {
 } from 'react';
 import * as authApi from '../api/authApi';
 import { AuthUser } from '../types/auth';
+import { clearActiveTripSession } from '../location/activeTripSessionStorage';
 import { clearSession, loadSession, saveSession } from './authStorage';
 
 type AuthContextValue = {
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }
 
   async function handleLogout() {
-    await clearSession();
+    await Promise.all([clearSession(), clearActiveTripSession()]);
     setUser(null);
     setAccessToken(null);
   }
