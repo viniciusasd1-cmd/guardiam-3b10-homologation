@@ -1,6 +1,9 @@
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { sendTripLocation, TripLocationInput } from '../api/safeTripsApi';
+import { GUARDIAM_BACKGROUND_LOCATION_TASK } from './backgroundLocationTask';
 import {
   ForegroundLocationPermissionStatus,
   getCurrentLocation,
@@ -25,6 +28,22 @@ type UseTripLocationTrackingOptions = {
   safeTripId?: string | null;
   isTripActive: boolean;
 };
+
+async function canUseBackgroundLocation(): Promise<boolean> {
+  try {
+    if (Constants.appOwnership === 'expo') {
+      return false;
+    }
+
+    if (typeof Location.isBackgroundLocationAvailableAsync === 'function') {
+      return await Location.isBackgroundLocationAvailableAsync();
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
 
 function isAuthorizationError(error: unknown): boolean {
   if (!error || typeof error !== 'object') {
@@ -111,14 +130,79 @@ export function useTripLocationTracking({
     }
   }, [accessToken, isTripActive, safeTripId]);
 
+  const startBackgroundLocationIfAvailable = useCallback(async () => {
+    if (!safeTripId || !accessToken || !isTripActive) {
+      return false;
+    }
+
+    if (!(await canUseBackgroundLocation())) {
+      return false;
+    }
+
+    try {
+      if (
+        await Location.hasStartedLocationUpdatesAsync(
+          GUARDIAM_BACKGROUND_LOCATION_TASK,
+        )
+      ) {
+        return true;
+      }
+
+      await Location.startLocationUpdatesAsync(
+        GUARDIAM_BACKGROUND_LOCATION_TASK,
+        {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: TRACKING_INTERVAL_MS,
+          distanceInterval: 10,
+          showsBackgroundLocationIndicator: true,
+          foregroundService: {
+            notificationTitle: 'GUARDIAM em proteção',
+            notificationBody:
+              'Monitorando sua localização durante a proteção ativa.',
+            notificationColor: '#0B1220',
+          },
+        },
+      );
+      return true;
+    } catch {
+      console.warn('[LocationRuntime] Background tracking unavailable.');
+      return false;
+    }
+  }, [accessToken, isTripActive, safeTripId]);
+
+  const stopBackgroundLocationIfRunning = useCallback(async () => {
+    if (!(await canUseBackgroundLocation())) {
+      return false;
+    }
+
+    try {
+      if (
+        !(await Location.hasStartedLocationUpdatesAsync(
+          GUARDIAM_BACKGROUND_LOCATION_TASK,
+        ))
+      ) {
+        return true;
+      }
+
+      await Location.stopLocationUpdatesAsync(
+        GUARDIAM_BACKGROUND_LOCATION_TASK,
+      );
+      return true;
+    } catch {
+      console.warn('[LocationRuntime] Background tracking stop unavailable.');
+      return false;
+    }
+  }, []);
+
   const stopTracking = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
 
+    void stopBackgroundLocationIfRunning();
     setIsTracking(false);
-  }, []);
+  }, [stopBackgroundLocationIfRunning]);
 
   const requestPermission = useCallback(async () => {
     try {
@@ -234,6 +318,7 @@ export function useTripLocationTracking({
 
     if (intervalRef.current) {
       setIsTracking(true);
+      void startBackgroundLocationIfAvailable();
       return true;
     }
 
@@ -249,6 +334,7 @@ export function useTripLocationTracking({
         void drainLocationQueue();
       }
     }, TRACKING_INTERVAL_MS);
+    void startBackgroundLocationIfAvailable();
 
     return true;
   }, [
@@ -258,6 +344,7 @@ export function useTripLocationTracking({
     requestPermission,
     safeTripId,
     sendCurrentLocation,
+    startBackgroundLocationIfAvailable,
   ]);
 
   useEffect(() => {
