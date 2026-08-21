@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useMemo,
   useState,
@@ -14,6 +15,7 @@ import {
   type GuardiamV2Theme,
   type GuardiamV2ThemeMode,
 } from './guardiamV2';
+import { saveThemePreference } from './themeStorage';
 
 export type GuardiamThemeResolutionInput = {
   userPreference: GuardiamV2ThemeMode;
@@ -68,7 +70,7 @@ export function GuardiamThemeProvider({
   initialProtectionActive = false,
   initialSosCritical = false,
 }: GuardiamThemeProviderProps) {
-  const [userPreference, setUserPreference] =
+  const [userPreference, setUserPreferenceState] =
     useState<GuardiamV2ThemeMode>(initialUserPreference);
 
   const [protectionActive, setProtectionActive] =
@@ -76,6 +78,14 @@ export function GuardiamThemeProvider({
 
   const [sosCritical, setSosCritical] =
     useState<boolean>(initialSosCritical);
+
+  const setUserPreference = useCallback(
+    (mode: GuardiamV2ThemeMode) => {
+      setUserPreferenceState(mode);
+      void saveThemePreference(mode);
+    },
+    []
+  );
 
   const theme = useMemo(
     () =>
@@ -106,6 +116,7 @@ export function GuardiamThemeProvider({
       userPreference,
       protectionActive,
       sosCritical,
+      setUserPreference,
     ]
   );
 
