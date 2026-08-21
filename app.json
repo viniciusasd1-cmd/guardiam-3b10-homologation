@@ -27,7 +27,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "O GUARDIAM usa sua localização durante a proteção ativa para enviar sua posição aos contatos confiáveis."
-      }
+      },
+      "bundleIdentifier": "com.guardiam.ride"
     },
     "android": {
       "package": "com.guardiam.ride",
