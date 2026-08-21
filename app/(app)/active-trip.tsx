@@ -12,6 +12,7 @@ import type { SafeTrip, TripStatus } from '../../src/types/safeTrip';
 import { createEventId } from '../../src/utils/uuid';
 import { FloatingGuardian } from '../../src/components/trip/FloatingGuardian';
 import { GuardianController } from '../../src/guardian/GuardianController';
+import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 type Action = 'alert' | 'complete' | 'start';
@@ -21,6 +22,7 @@ export default function ActiveTripScreen() {
   const { safeTripId } = useLocalSearchParams<{ safeTripId?: string }>();
   const router = useRouter();
   const { accessToken } = useAuth();
+  const { setProtectionActive } = useGuardiamTheme();
   const [safeTrip, setSafeTrip] = useState<SafeTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -83,6 +85,14 @@ export default function ActiveTripScreen() {
   useEffect(() => {
     if (safeTrip?.status === 'ALERT_TRIGGERED' && !alertAt) setAlertAt(new Date());
   }, [alertAt, safeTrip?.status]);
+
+  useEffect(() => {
+    setProtectionActive(active && !ended);
+
+    return () => {
+      setProtectionActive(false);
+    };
+  }, [active, ended, setProtectionActive]);
   useEffect(() => {
     if (!safeTrip || !active || isTracking || trackingAttempt.current === safeTrip.id) return;
     trackingAttempt.current = safeTrip.id;
