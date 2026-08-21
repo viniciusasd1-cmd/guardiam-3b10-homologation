@@ -22,7 +22,7 @@ export default function ActiveTripScreen() {
   const { safeTripId } = useLocalSearchParams<{ safeTripId?: string }>();
   const router = useRouter();
   const { accessToken } = useAuth();
-  const { setProtectionActive } = useGuardiamTheme();
+  const { setProtectionActive, setSosCritical } = useGuardiamTheme();
   const [safeTrip, setSafeTrip] = useState<SafeTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -93,6 +93,14 @@ export default function ActiveTripScreen() {
       setProtectionActive(false);
     };
   }, [active, ended, setProtectionActive]);
+
+  useEffect(() => {
+    setSosCritical(alerted);
+
+    return () => {
+      setSosCritical(false);
+    };
+  }, [alerted, setSosCritical]);
   useEffect(() => {
     if (!safeTrip || !active || isTracking || trackingAttempt.current === safeTrip.id) return;
     trackingAttempt.current = safeTrip.id;
