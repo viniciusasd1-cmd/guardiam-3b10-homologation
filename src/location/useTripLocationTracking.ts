@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { sendTripLocation, TripLocationInput } from '../api/safeTripsApi';
 import {
   ForegroundLocationPermissionStatus,
@@ -32,6 +33,7 @@ export function useTripLocationTracking({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const permissionStatusRef =
     useRef<ForegroundLocationPermissionStatus>(null);
+  const lastReportedAppStateRef = useRef<AppStateStatus | null>(null);
 
   const stopTracking = useCallback(() => {
     if (intervalRef.current) {
@@ -161,6 +163,37 @@ export function useTripLocationTracking({
       stopTracking();
     }
   }, [isTripActive, stopTracking]);
+
+  useEffect(() => {
+    if (!isTracking) {
+      lastReportedAppStateRef.current = null;
+      return;
+    }
+
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextState: AppStateStatus) => {
+        if (nextState === 'active') {
+          lastReportedAppStateRef.current = null;
+          return;
+        }
+
+        if (
+          (nextState === 'background' || nextState === 'inactive') &&
+          lastReportedAppStateRef.current !== nextState
+        ) {
+          lastReportedAppStateRef.current = nextState;
+          console.warn(
+            '[LocationRuntime] Tracking foreground may pause while app is backgrounded.',
+          );
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isTracking]);
 
   useEffect(() => stopTracking, [stopTracking]);
 
