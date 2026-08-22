@@ -50,6 +50,8 @@ import {
 import type { SafeTrip, TripStatus } from '../../src/types/safeTrip';
 import { createEventId } from '../../src/utils/uuid';
 import { FloatingGuardian } from '../../src/components/trip/FloatingGuardian';
+import { ApprovedMapRadar } from '../../src/components/layout/ApprovedMapRadar';
+import { ApprovedCard } from '../../src/components/ui';
 import { GuardianController } from '../../src/guardian/GuardianController';
 import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
 import {
@@ -394,6 +396,9 @@ export default function ActiveTripScreen() {
     <Page theme={theme} resolvedMode={resolvedMode} scroll compact>
       <Header onBack={() => router.back()} theme={theme} />
 
+      <ApprovedMapRadar isDark={resolvedMode !== 'light'} height={148} />
+
+      <ApprovedCard variant={resolvedMode === 'dark' ? 'dark' : 'default'} style={styles.statusCard}>
       <FloatingGuardian
         disabled={action !== null}
         confirmed={alerted}
@@ -590,6 +595,8 @@ export default function ActiveTripScreen() {
           theme={theme}
         />
       </View>
+
+      </ApprovedCard>
 
       {/* Complete Trip / Deactivate Action */}
       <Pressable
