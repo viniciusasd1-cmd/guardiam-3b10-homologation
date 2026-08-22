@@ -35,6 +35,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { createSafeTrip, getActiveTrip, startTrip } from '../../src/api/safeTripsApi';
+import { ApprovedBadge, ApprovedCard } from '../../src/components/ui';
 import { useAuth } from '../../src/auth/AuthContext';
 import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
 import {
@@ -321,6 +322,7 @@ export default function HomeScreen() {
           </View>
 
           {/* Status Card */}
+          <ApprovedCard variant={resolvedMode === 'dark' ? 'dark' : 'default'} style={styles.statusCard}>
           <View
             style={[
               styles.statusCard,
@@ -364,7 +366,7 @@ export default function HomeScreen() {
                 ]}
               >
                 <View style={[styles.offDot, { backgroundColor: theme.warn }]} />
-                <Text style={[styles.offText, { color: theme.warn }]}>OFF</Text>
+                <ApprovedBadge variant="inactive">OFF</ApprovedBadge>
               </View>
             </View>
 
@@ -383,6 +385,8 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
+
+          </ApprovedCard>
 
           {/* Primary Action Button: Ativar Proteção */}
           <Pressable
