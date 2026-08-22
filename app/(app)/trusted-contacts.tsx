@@ -1,40 +1,34 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
-
 import {
-  createTrustedContact,
-  listTrustedContacts,
-} from '../../src/api/trustedContactsApi';
+  Mail,
+  Users,
+  UserPlus,
+  Phone,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react-native';
+
+import { ApprovedHeader } from '../../src/components/layout';
+import {
+  ApprovedButton,
+  ApprovedCard,
+  ApprovedContactItem,
+  ApprovedInput,
+} from '../../src/components/ui';
+import { createTrustedContact, listTrustedContacts } from '../../src/api/trustedContactsApi';
 import { useAuth } from '../../src/auth/AuthContext';
-import type {
-  TrustedContact,
-  TrustedContactRelationship,
-} from '../../src/types/trustedContact';
-
-type IconName = ComponentProps<typeof Ionicons>['name'];
-
-type ContactInputProps = {
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
-  icon: IconName;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad';
-  label: string;
-  onChangeText: (value: string) => void;
-  placeholder: string;
-  value: string;
-};
+import { useGuardiamTheme } from '../../src/theme/GuardiamThemeProvider';
+import type { TrustedContact, TrustedContactRelationship } from '../../src/types/trustedContact';
 
 const RELATIONSHIP_LABELS: Record<TrustedContactRelationship, string> = {
   FAMILY: 'Família',
@@ -46,7 +40,9 @@ const RELATIONSHIP_LABELS: Record<TrustedContactRelationship, string> = {
 
 export default function TrustedContactsScreen() {
   const router = useRouter();
+  const { theme, resolvedMode } = useGuardiamTheme();
   const { accessToken } = useAuth();
+  const isDark = resolvedMode === 'dark' || resolvedMode === 'darkNavy';
   const [contacts, setContacts] = useState<TrustedContact[]>([]);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -57,7 +53,7 @@ export default function TrustedContactsScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadContacts();
+    void loadContacts();
   }, [accessToken]);
 
   async function loadContacts() {
@@ -113,229 +109,151 @@ export default function TrustedContactsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <ApprovedHeader
+        title="Contatos de segurança"
+        showBack
+        onBack={() => router.back()}
+        variant={isDark ? 'dark' : 'light'}
+      />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Pressable
-            accessibilityLabel="Voltar"
-            accessibilityRole="button"
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.backButton, pressed ? styles.pressed : null]}
-          >
-            <Ionicons color="#0F172A" name="chevron-back" size={22} />
-          </Pressable>
-
-          <View style={styles.brandRow}>
-            <View style={styles.logoMark}>
-              <Ionicons color="#1B6EE0" name="shield-checkmark-outline" size={20} />
-            </View>
-            <Text style={styles.brand}>GUARDIAM</Text>
+        <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.heroCard}>
+          <View style={[styles.heroIcon, { backgroundColor: theme.surface2 }]}>
+            <Users color={theme.brand} size={28} />
           </View>
-
-          <View style={styles.headerSpacer} />
-        </View>
-
-        <View style={styles.heroCard}>
-          <View style={styles.heroIcon}>
-            <Ionicons color="#1B6EE0" name="people-outline" size={34} />
-          </View>
-          <Text style={styles.eyebrow}>Sua rede de apoio</Text>
-          <Text style={styles.title}>Contatos de segurança</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.eyebrow, { color: theme.brand }]}>Sua rede de apoio</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Contatos de segurança</Text>
+          <Text style={[styles.subtitle, { color: theme.text2 }]}>
             Pessoas que poderão ser avisadas quando você acionar um alerta no GUARDIAM.
           </Text>
-
-          <View style={styles.infoBadge}>
-            <Ionicons color="#10B981" name="shield-checkmark-outline" size={16} />
-            <Text style={styles.infoBadgeText}>
+          <View style={[styles.infoRow, { backgroundColor: theme.surface2 }]}>
+            <ShieldCheck color={theme.active} size={16} />
+            <Text style={[styles.infoText, { color: theme.text2 }]}>
               Essas pessoas poderão ser avisadas em caso de alerta
             </Text>
           </View>
-        </View>
+        </ApprovedCard>
 
-        <View style={styles.formCard}>
+        <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.formCard}>
           <View style={styles.sectionHeading}>
-            <View style={styles.sectionIcon}>
-              <Ionicons color="#1B6EE0" name="person-add-outline" size={18} />
+            <View style={[styles.sectionIcon, { backgroundColor: theme.surface2 }]}>
+              <UserPlus color={theme.brand} size={18} />
             </View>
-            <View style={styles.sectionHeadingText}>
-              <Text style={styles.sectionTitle}>Adicionar contato</Text>
-              <Text style={styles.sectionDescription}>
+            <View style={styles.sectionText}>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Adicionar contato</Text>
+              <Text style={[styles.sectionDescription, { color: theme.text2 }]}>
                 Cadastre alguém que poderá ajudar em um alerta.
               </Text>
             </View>
           </View>
 
-          <ContactInput
-            icon="person-outline"
+          <ApprovedInput
             label="Nome"
+            value={name}
             onChangeText={setName}
             placeholder="Nome completo"
-            value={name}
+            leftIcon={<Users color={theme.text3} size={18} />}
           />
-          <ContactInput
-            icon="call-outline"
-            keyboardType="phone-pad"
+          <ApprovedInput
             label="Telefone"
+            value={phone}
             onChangeText={setPhone}
             placeholder="(00) 00000-0000"
-            value={phone}
+            keyboardType="phone-pad"
+            leftIcon={<Phone color={theme.text3} size={18} />}
           />
-          <ContactInput
-            autoCapitalize="none"
-            icon="mail-outline"
-            keyboardType="email-address"
+          <ApprovedInput
             label="E-mail opcional"
+            value={email}
             onChangeText={setEmail}
             placeholder="nome@exemplo.com"
-            value={email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            leftIcon={<Mail color={theme.text3} size={18} />}
           />
-          <ContactInput
-            autoCapitalize="characters"
-            icon="heart-outline"
+          <ApprovedInput
             label="Relação"
+            value={relationship}
             onChangeText={setRelationship}
             placeholder="FRIEND"
-            value={relationship}
+            autoCapitalize="characters"
+            leftIcon={<ShieldCheck color={theme.text3} size={18} />}
           />
-
-          <Pressable
-            accessibilityLabel="Adicionar contato"
-            accessibilityRole="button"
-            accessibilityState={{ disabled: loading }}
+          <ApprovedButton
+            fullWidth
+            variant="primary"
+            isLoading={loading}
             disabled={loading}
-            onPress={handleCreate}
-            style={({ pressed }) => [
-              styles.primaryButton,
-              pressed && !loading ? styles.primaryButtonPressed : null,
-              loading ? styles.primaryButtonDisabled : null,
-            ]}
+            leftIcon={<UserPlus color={isDark ? '#111318' : '#FFFFFF'} size={18} />}
+            onPress={() => void handleCreate()}
           >
-            {loading ? (
-              <ActivityIndicator color="#0F172A" size="small" />
-            ) : (
-              <Ionicons color="#0F172A" name="person-add-outline" size={21} />
-            )}
-            <Text style={styles.primaryButtonText}>
-              {loading ? 'Adicionando contato...' : 'Adicionar contato'}
-            </Text>
-          </Pressable>
-        </View>
+            {loading ? 'Adicionando contato...' : 'Adicionar contato'}
+          </ApprovedButton>
+        </ApprovedCard>
 
         <View style={styles.listSection}>
           <View style={styles.listHeader}>
-            <Text style={styles.listTitle}>Seus contatos</Text>
+            <Text style={[styles.listTitle, { color: theme.text }]}>Seus contatos</Text>
             {!loadingContacts && !loadError && contacts.length > 0 ? (
-              <View style={styles.countBadge}>
-                <Text style={styles.countBadgeText}>{contacts.length}</Text>
+              <View style={[styles.countBadge, { backgroundColor: theme.surface2 }]}>
+                <Text style={[styles.countText, { color: theme.brand }]}>{contacts.length}</Text>
               </View>
             ) : null}
           </View>
 
           {loadingContacts ? (
-            <View style={styles.stateCard}>
-              <ActivityIndicator color="#1B6EE0" size="large" />
-              <Text style={styles.stateTitle}>Carregando contatos</Text>
-              <Text style={styles.stateDescription}>Estamos preparando sua rede de apoio.</Text>
-            </View>
+            <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.stateCard}>
+              <ActivityIndicator color={theme.brand} size="large" />
+              <Text style={[styles.stateTitle, { color: theme.text }]}>Carregando contatos</Text>
+              <Text style={[styles.stateDescription, { color: theme.text2 }]}>
+                Estamos preparando sua rede de apoio.
+              </Text>
+            </ApprovedCard>
           ) : loadError ? (
-            <View style={styles.stateCard}>
-              <View style={[styles.stateIcon, styles.errorIcon]}>
-                <Ionicons color="#DC2626" name="cloud-offline-outline" size={26} />
-              </View>
-              <Text style={styles.stateTitle}>Não foi possível carregar</Text>
-              <Text style={styles.stateDescription}>{loadError}</Text>
-              <Pressable
-                accessibilityLabel="Tentar novamente"
-                accessibilityRole="button"
-                onPress={loadContacts}
-                style={({ pressed }) => [
-                  styles.retryButton,
-                  pressed ? styles.pressed : null,
-                ]}
+            <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.stateCard}>
+              <RefreshCw color={theme.sos} size={28} />
+              <Text style={[styles.stateTitle, { color: theme.text }]}>Não foi possível carregar</Text>
+              <Text style={[styles.stateDescription, { color: theme.text2 }]}>{loadError}</Text>
+              <ApprovedButton
+                variant="outline"
+                leftIcon={<RefreshCw color={theme.brand} size={16} />}
+                onPress={() => void loadContacts()}
               >
-                <Ionicons color="#1B6EE0" name="refresh-outline" size={18} />
-                <Text style={styles.retryButtonText}>Tentar novamente</Text>
-              </Pressable>
-            </View>
+                Tentar novamente
+              </ApprovedButton>
+            </ApprovedCard>
           ) : contacts.length === 0 ? (
-            <View style={styles.stateCard}>
-              <View style={styles.stateIcon}>
-                <Ionicons color="#1B6EE0" name="people-outline" size={28} />
-              </View>
-              <Text style={styles.stateTitle}>Nenhum contato cadastrado</Text>
-              <Text style={styles.stateDescription}>
+            <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.stateCard}>
+              <Users color={theme.brand} size={28} />
+              <Text style={[styles.stateTitle, { color: theme.text }]}>
+                Nenhum contato cadastrado
+              </Text>
+              <Text style={[styles.stateDescription, { color: theme.text2 }]}>
                 Adicione uma pessoa para começar sua rede de segurança.
               </Text>
-            </View>
+            </ApprovedCard>
           ) : (
-            <View style={styles.list}>
+            <ApprovedCard variant={isDark ? 'dark' : 'default'} style={styles.contactsCard}>
               {contacts.map((contact) => (
-                <View key={contact.id} style={styles.contactCard}>
-                  <View style={styles.contactAvatar}>
-                    <Text style={styles.contactInitial}>
-                      {contact.name.trim().charAt(0).toUpperCase() || '?'}
-                    </Text>
-                  </View>
-
-                  <View style={styles.contactContent}>
-                    <Text numberOfLines={1} style={styles.contactName}>
-                      {contact.name}
-                    </Text>
-                    <View style={styles.relationshipRow}>
-                      <Ionicons color="#1B6EE0" name="heart-outline" size={14} />
-                      <Text style={styles.relationshipText}>
-                        {RELATIONSHIP_LABELS[contact.relationship]}
-                      </Text>
-                    </View>
-                    <View style={styles.contactMetaRow}>
-                      <Ionicons color="#94A3B8" name="call-outline" size={14} />
-                      <Text style={styles.contactMeta}>{contact.phone}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.readyIcon}>
-                    <Ionicons color="#10B981" name="checkmark" size={17} />
-                  </View>
-                </View>
+                <ApprovedContactItem
+                  key={contact.id}
+                  contact={{
+                    id: contact.id,
+                    name: contact.name,
+                    phone: contact.phone,
+                    status: contact.status.toLowerCase() === 'pending' ? 'pending' : 'active',
+                  }}
+                />
               ))}
-            </View>
+            </ApprovedCard>
           )}
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function ContactInput({
-  autoCapitalize,
-  icon,
-  keyboardType = 'default',
-  label,
-  onChangeText,
-  placeholder,
-  value,
-}: ContactInputProps) {
-  return (
-    <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
-      <View style={styles.inputShell}>
-        <Ionicons color="#64748B" name={icon} size={18} />
-        <TextInput
-          autoCapitalize={autoCapitalize}
-          keyboardType={keyboardType}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#64748B"
-          style={styles.input}
-          value={value}
-        />
-      </View>
-    </View>
   );
 }
 
@@ -344,360 +262,28 @@ function getErrorMessage(error: unknown) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: '#0F172A',
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 110,
-    paddingHorizontal: 20,
-    paddingTop: 18,
-  },
-  header: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  backButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.82)',
-    borderColor: 'rgba(148, 163, 184, 0.18)',
-    borderRadius: 18,
-    borderWidth: 1,
-    height: 42,
-    justifyContent: 'center',
-    width: 42,
-  },
-  brandRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 9,
-  },
-  logoMark: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(14, 165, 233, 0.14)',
-    borderColor: 'rgba(125, 211, 252, 0.34)',
-    borderRadius: 14,
-    borderWidth: 1,
-    height: 38,
-    justifyContent: 'center',
-    width: 38,
-  },
-  brand: {
-    color: '#0F172A',
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-  },
-  headerSpacer: {
-    width: 42,
-  },
-  pressed: {
-    opacity: 0.72,
-    transform: [{ scale: 0.98 }],
-  },
-  heroCard: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(8, 28, 48, 0.94)',
-    borderColor: 'rgba(56, 189, 248, 0.24)',
-    borderRadius: 30,
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    shadowColor: '#1B6EE0',
-    shadowOffset: { height: 14, width: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 22,
-  },
-  heroIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderColor: 'rgba(125, 211, 252, 0.25)',
-    borderRadius: 28,
-    borderWidth: 1,
-    height: 62,
-    justifyContent: 'center',
-    marginBottom: 14,
-    width: 62,
-  },
-  eyebrow: {
-    color: '#1B6EE0',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 6,
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -0.4,
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: '#475569',
-    fontSize: 15,
-    lineHeight: 22,
-    marginTop: 10,
-    maxWidth: 320,
-    textAlign: 'center',
-  },
-  infoBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.08)',
-    borderColor: 'rgba(134, 239, 172, 0.18)',
-    borderRadius: 18,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 18,
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-  },
-  infoBadgeText: {
-    color: '#D1FAE5',
-    flexShrink: 1,
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 17,
-    textAlign: 'center',
-  },
-  formCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.84)',
-    borderColor: 'rgba(148, 163, 184, 0.14)',
-    borderRadius: 26,
-    borderWidth: 1,
-    gap: 14,
-    marginBottom: 22,
-    padding: 17,
-  },
-  sectionHeading: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 11,
-    marginBottom: 2,
-  },
-  sectionIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderRadius: 15,
-    height: 36,
-    justifyContent: 'center',
-    width: 36,
-  },
-  sectionHeadingText: {
-    flex: 1,
-  },
-  sectionTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  sectionDescription: {
-    color: '#94A3B8',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  inputGroup: {
-    gap: 7,
-  },
-  inputLabel: {
-    color: '#475569',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  inputShell: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(4, 17, 31, 0.72)',
-    borderColor: 'rgba(148, 163, 184, 0.18)',
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 10,
-    minHeight: 52,
-    paddingHorizontal: 14,
-  },
-  input: {
-    color: '#FFFFFF',
-    flex: 1,
-    fontSize: 15,
-    minHeight: 50,
-    paddingVertical: 0,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#1B6EE0',
-    borderRadius: 18,
-    flexDirection: 'row',
-    gap: 9,
-    justifyContent: 'center',
-    marginTop: 3,
-    minHeight: 54,
-    paddingHorizontal: 18,
-    shadowColor: '#1B6EE0',
-    shadowOffset: { height: 8, width: 0 },
-    shadowOpacity: 0.22,
-    shadowRadius: 16,
-  },
-  primaryButtonPressed: {
-    opacity: 0.86,
-    transform: [{ scale: 0.99 }],
-  },
-  primaryButtonDisabled: {
-    opacity: 0.7,
-  },
-  primaryButtonText: {
-    color: '#0F172A',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  listSection: {
-    gap: 12,
-  },
-  listHeader: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  listTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  countBadge: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.14)',
-    borderRadius: 999,
-    justifyContent: 'center',
-    minHeight: 24,
-    minWidth: 24,
-    paddingHorizontal: 7,
-  },
-  countBadgeText: {
-    color: '#1B6EE0',
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  stateCard: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(8, 28, 48, 0.74)',
-    borderColor: 'rgba(56, 189, 248, 0.16)',
-    borderRadius: 24,
-    borderWidth: 1,
-    gap: 9,
-    paddingHorizontal: 20,
-    paddingVertical: 28,
-  },
-  stateIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
-    borderRadius: 24,
-    height: 52,
-    justifyContent: 'center',
-    marginBottom: 3,
-    width: 52,
-  },
-  errorIcon: {
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-  },
-  stateTitle: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-    textAlign: 'center',
-  },
-  stateDescription: {
-    color: '#94A3B8',
-    fontSize: 13,
-    lineHeight: 19,
-    maxWidth: 280,
-    textAlign: 'center',
-  },
-  retryButton: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
-    borderColor: 'rgba(125, 211, 252, 0.24)',
-    borderRadius: 16,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
-  },
-  retryButtonText: {
-    color: '#1B6EE0',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  list: {
-    gap: 10,
-  },
-  contactCard: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 23, 42, 0.84)',
-    borderColor: 'rgba(148, 163, 184, 0.14)',
-    borderRadius: 22,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: 13,
-    padding: 15,
-  },
-  contactAvatar: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.13)',
-    borderColor: 'rgba(125, 211, 252, 0.22)',
-    borderRadius: 20,
-    borderWidth: 1,
-    height: 46,
-    justifyContent: 'center',
-    width: 46,
-  },
-  contactInitial: {
-    color: '#1B6EE0',
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  contactContent: {
-    flex: 1,
-  },
-  contactName: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-    marginBottom: 5,
-  },
-  relationshipRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 5,
-    marginBottom: 4,
-  },
-  relationshipText: {
-    color: '#1B6EE0',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  contactMetaRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 5,
-  },
-  contactMeta: {
-    color: '#94A3B8',
-    flexShrink: 1,
-    fontSize: 13,
-  },
-  readyIcon: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-    borderRadius: 14,
-    height: 30,
-    justifyContent: 'center',
-    width: 30,
-  },
+  safeArea: { flex: 1 },
+  content: { flexGrow: 1, gap: 16, padding: 20, paddingBottom: 110 },
+  heroCard: { alignItems: 'center', padding: 22 },
+  heroIcon: { alignItems: 'center', borderRadius: 28, justifyContent: 'center', height: 56, width: 56 },
+  eyebrow: { fontSize: 12, fontWeight: '800', letterSpacing: 0.8, marginTop: 14, textTransform: 'uppercase' },
+  title: { fontSize: 26, fontWeight: '900', marginTop: 6, textAlign: 'center' },
+  subtitle: { fontSize: 14, lineHeight: 21, marginTop: 10, maxWidth: 320, textAlign: 'center' },
+  infoRow: { alignItems: 'center', borderRadius: 16, flexDirection: 'row', gap: 8, marginTop: 18, padding: 11 },
+  infoText: { flexShrink: 1, fontSize: 12, fontWeight: '700', lineHeight: 17, textAlign: 'center' },
+  formCard: { gap: 14, padding: 17 },
+  sectionHeading: { alignItems: 'center', flexDirection: 'row', gap: 11, marginBottom: 2 },
+  sectionIcon: { alignItems: 'center', borderRadius: 15, height: 36, justifyContent: 'center', width: 36 },
+  sectionText: { flex: 1 },
+  sectionTitle: { fontSize: 16, fontWeight: '900' },
+  sectionDescription: { fontSize: 12, marginTop: 2 },
+  listSection: { gap: 12 },
+  listHeader: { alignItems: 'center', flexDirection: 'row', gap: 8 },
+  listTitle: { fontSize: 18, fontWeight: '900' },
+  countBadge: { alignItems: 'center', borderRadius: 999, justifyContent: 'center', minHeight: 24, minWidth: 24, paddingHorizontal: 7 },
+  countText: { fontSize: 12, fontWeight: '900' },
+  stateCard: { alignItems: 'center', gap: 10, padding: 24 },
+  stateTitle: { fontSize: 16, fontWeight: '900', textAlign: 'center' },
+  stateDescription: { fontSize: 13, lineHeight: 19, maxWidth: 280, textAlign: 'center' },
+  contactsCard: { paddingHorizontal: 12, paddingVertical: 4 },
 });
